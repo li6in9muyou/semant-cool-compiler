@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
 
-red() {
-  xargs printf "\033[0;31m%s\033[0m\n"
-}
-
-green() {
-  xargs printf "\033[0;32m%s\033[0m\n"
-}
-
 actual() {
   mylexer "$1" | myparser | ./semant 2>&1
 }
@@ -16,22 +8,35 @@ expected() {
   lexer "$1" | parser | semant 2>&1
 }
 
+green() {
+  printf "\033[0;32m%s\033[0m\n" "$1"
+}
+
+red() {
+  printf "\033[0;31m%s\033[0m\n" "$1"
+}
+
+yellow() {
+  printf "\033[0;33m%s\033[0m\n" "$1"
+}
+
 make lexer
 
-for cl in "$@"
+for input_cl in "$@"
 do
-    input_cl="$cl"
-    echo "INPUT: ${input_cl}"
+    echo
+    yellow "$input_cl"
     if [[ ! -f "$input_cl" ]]; then
-        echo "FILE NOT FOUND" | red
+        red "FILE NOT FOUND"
         continue;
     fi
+
     if diff -u --color \
              --label actual <(actual "$input_cl") \
              --label expected <(expected "$input_cl"); then
-      echo PASS | green
+      green PASS
     else
-      echo FAILED | red
+      red FAIL
     fi
 done
 
