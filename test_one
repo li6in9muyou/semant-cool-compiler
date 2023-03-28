@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
+red() {
+  xargs printf "\033[0;31m%s\033[0m\n"
+}
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
+green() {
+  xargs printf "\033[0;32m%s\033[0m\n"
+}
 
 make lexer
 
@@ -12,10 +15,10 @@ do
     input_cl="$cl"
     diff -u --color --label actual <(./lexer $input_cl) --label expected <(../../bin/lexer $input_cl)
     if [[ "$?" -eq 0 ]]; then
-      printf "${GREEN}PASS${NC}\t"
+      echo PASS | green
     else
-      printf "${RED}FAILED${NC}\t"
+      echo FAILED | red
     fi
-    printf "INPUT: ${input_cl}\n"
+    ehco INPUT:" ${input_cl}"
 done
 
