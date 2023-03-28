@@ -8,6 +8,14 @@ green() {
   xargs printf "\033[0;32m%s\033[0m\n"
 }
 
+actual() {
+  mylexer "$1" | myparser | ./semant 2>&1
+}
+
+expected() {
+  lexer "$1" | parser | semant 2>&1
+}
+
 make lexer
 
 for cl in "$@"
