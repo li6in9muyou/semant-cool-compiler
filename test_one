@@ -19,6 +19,6 @@ do
     else
       echo FAILED | red
     fi
-    ehco INPUT:" ${input_cl}"
+    echo INPUT:" ${input_cl}"
 done
 
