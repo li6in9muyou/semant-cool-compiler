@@ -20,7 +20,20 @@ yellow() {
   printf "\033[0;33m%s\033[0m\n" "$1"
 }
 
-make lexer
+do_make=true
+
+while getopts "q" opt
+do
+    case $opt in
+    (q) do_make=false ;;
+    (*) printf "-q: skip \"make lexer\"" && exit 1 ;;
+    esac
+done
+shift $((OPTIND-1))
+
+case $do_make in
+  (true) make lexer;;
+esac
 
 for input_cl in "$@"
 do
