@@ -82,10 +82,74 @@ static void initialize_constants(void)
 }
 
 
+#include <set>
+#include <map>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using std::string;
+using std::set;
+using std::map;
+using std::vector;
+
+bool contains(const string& needle, const set<string>& haystack) {
+    return haystack.cend() != haystack.find(needle);
+}
+
+bool check_class_in_loop(
+    const string& me,
+    set<string>& mark,
+    map<string,string>& parent
+) {
+    if(contains(me, mark)) {
+        return true;
+    }
+    
+    auto ans = false;
+    
+    if(parent[me] != "" && parent[me] != "Object") {
+        mark.insert(me);
+        ans = check_class_in_loop(parent[me], mark, parent);
+        mark.erase(me);
+    }
+    
+    return ans;
+}
+
+string error_message_inheritance_cycle(string class_name) {
+    return 
+        std::string("Class ") + class_name 
+        + std::string(", or an ancestor of ") + class_name 
+        + std::string(", is involved in an inheritance cycle.");
+}
+
+void ClassTable::check_inheritance_cycle(Classes classes) {
+    auto parent = map<string, string>();
+    auto klasses = vector<class__class*>(classes->len());
+    
+    for(auto i = classes->first(); classes->more(i); i = classes->next(i)) {
+        auto* cls = (class__class*) classes->nth(i); 
+        parent.insert({ cls->get_name(), cls->get_parent_name() });
+        klasses.push_back(cls);
+    }
+
+    auto mark = set<string>();
+    std::reverse(klasses.begin(), klasses.end());
+    for(const auto& cls : klasses) {
+        auto in_loop = check_class_in_loop(cls->get_name(), mark, parent);
+        if(in_loop) {
+            this->semant_error(cls) 
+                << error_message_inheritance_cycle(cls->get_name())
+                << std::endl;
+        };
+    }
+}
 
 ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) {
 
     /* Fill this in */
+    check_inheritance_cycle(classes);
 
 }
 
