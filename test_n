@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
+
+test_in_dir() {
+  find "$1" -mindepth 1 -maxdepth 1 -type f -name "*.cl" -printf "%s %p\n" \
+  | sort -n \
+  | cut -d ' ' -f 2
+}
+
 input_dir="$1"
-file_cnt=$(ls $input_dir --sort size -r | grep cl$ | wc -l)
+file_cnt=$(test_in_dir "$input_dir" | wc -l)
 n="${2:-$file_cnt}"
-echo "$input_dir: " FOUND "$file_cnt" FILES
-echo
-./test_one $(\
-    ls $input_dir --sort size -r | grep cl$ \
-    | head -n $n \
-    | sed 's@^@'"$input_dir"'/@'\
-)
+
+printf "%s: FOUND %d FILES\n" "$input_dir" "$file_cnt"
+
+make lexer
+
+for input in $(test_in_dir "$input_dir" | head -n "$n");
+do
+  ./test_one -q "$input"
+done
