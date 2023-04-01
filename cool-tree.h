@@ -10,7 +10,6 @@
 
 #include "tree.h"
 #include "cool-tree.handcode.h"
-#include <string>
 
 // define the class for phylum
 // define simple phylum - Program
@@ -120,10 +119,6 @@ typedef Cases_class *Cases;
 
 // define the class for constructors
 // define constructor - program
-#include "symtab.h"
-
-class SemantContext;
-
 class program_class : public Program_class
 {
 protected:

@@ -50,6 +50,9 @@ typedef Cases_class *Cases;
 	virtual void semant() = 0; \
 	virtual void dump_with_types(ostream &, int) = 0;
 
+#include "symtab.h"
+class SemantContext;
+
 #define program_EXTRAS                                      \
 	void semant();                                          \
 	void dump_with_types(ostream &, int);                   \
