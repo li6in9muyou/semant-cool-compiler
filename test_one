@@ -31,7 +31,12 @@ done
 shift $((OPTIND - 1))
 
 case $do_make in
-true) make -j8 semant ;;
+true)
+  if ! make -j8 semant; then
+    red "BUILD FAILED"
+    exit 1
+  fi
+  ;;
 esac
 
 for input_cl in "$@"; do
