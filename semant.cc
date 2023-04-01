@@ -105,6 +105,17 @@ using std::set;
 using std::string;
 using std::vector;
 
+void class__class::semant(SemantContext &ctx)
+{
+    ctx.sym.enterscope();
+
+    ctx.sym.exitscope();
+}
+
+void class__class::check_duplicate_feature_names(SemantContext &ctx)
+{
+}
+
 void program_class::semant()
 {
     initialize_constants();

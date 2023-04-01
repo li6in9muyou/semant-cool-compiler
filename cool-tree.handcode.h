@@ -65,19 +65,21 @@ class SemantContext;
 	virtual Symbol get_filename() = 0; \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#define class__EXTRAS        \
-	Symbol get_filename()    \
-	{                        \
-		return filename;     \
-	}                        \
-	Symbol get_name()        \
-	{                        \
-		return this->name;   \
-	};                       \
-	Symbol get_parent()      \
-	{                        \
-		return this->parent; \
-	};                       \
+#define class__EXTRAS                                    \
+	void semant(SemantContext &);                        \
+	void check_duplicate_feature_names(SemantContext &); \
+	Symbol get_filename()                                \
+	{                                                    \
+		return filename;                                 \
+	}                                                    \
+	Symbol get_name()                                    \
+	{                                                    \
+		return this->name;                               \
+	};                                                   \
+	Symbol get_parent()                                  \
+	{                                                    \
+		return this->parent;                             \
+	};                                                   \
 	void dump_with_types(ostream &, int);
 
 #define Feature_EXTRAS \
