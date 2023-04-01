@@ -116,16 +116,13 @@ void program_class::semant()
     ctx.sym.enterscope();
     install_basic_classes(ctx.sym);
 
-    check_superclass_undefined(ctx);
     check_inheritance_cycle(ctx);
+    ctx.abort_if_error();
+
+    check_superclass_undefined(ctx);
+    ctx.abort_if_error();
 
     ctx.sym.exitscope();
-
-    if (ctx.errors())
-    {
-        cerr << "Compilation halted due to static semantic errors." << endl;
-        exit(1);
-    }
 }
 
 bool contains(const string &needle, const set<string> &haystack)
@@ -338,6 +335,15 @@ void program_class::install_basic_classes(CoolSymbolTable &sym)
 ///////////////////////////////////////////////////////////////////
 
 SemantContext::SemantContext() : semant_errors(0), error_stream(cerr){};
+
+void SemantContext::abort_if_error()
+{
+    if (0 < errors())
+    {
+        cerr << "Compilation halted due to static semantic errors." << endl;
+        exit(1);
+    }
+}
 
 ostream &SemantContext::semant_error(Class_ c)
 {
