@@ -11,23 +11,14 @@
 #define TRUE 1
 #define FALSE 0
 
-class ClassTable;
-typedef ClassTable *ClassTableP;
-
-// This is a structure that may be used to contain the semantic
-// information such as the inheritance graph.  You may use it or not as
-// you like: it is only here to provide a container for the supplied
-// methods.
-
-class ClassTable {
+class SemantContext {
+using CoolSymbolTable = SymbolTable<Symbol, tree_node>;
 private:
   int semant_errors;
-  void install_basic_classes();
   ostream& error_stream;
-  void check_inheritance_cycle(Classes classes);
-
 public:
-  ClassTable(Classes classes);
+  CoolSymbolTable sym;
+  SemantContext();
   int errors() { return semant_errors; }
   ostream& semant_error();
   ostream& semant_error(Class_ c);

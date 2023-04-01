@@ -127,7 +127,16 @@ typedef Cases_class *Cases;
 
 // define the class for constructors
 // define constructor - program
+#include "symtab.h"
+
+class SemantContext;
+
 class program_class : public Program_class {
+private:
+   using CoolSymbolTable = SymbolTable<Symbol, tree_node>;
+   void install_basic_classes(CoolSymbolTable&);
+   void check_superclass_is_defined(SemantContext&);
+   void check_inheritance_cycle(SemantContext&);
 protected:
    Classes classes;
 public:
@@ -162,11 +171,11 @@ public:
    }
    Class_ copy_Class_();
    void dump(ostream& stream, int n);
-   std::string get_name() {
-      return { this->name->get_string() };
+   Symbol get_name() {
+      return this->name;
    };
-   std::string get_parent_name() {
-      return { this->parent->get_string() };
+   Symbol get_parent() {
+      return this->parent;
    };
 
 #ifdef Class__SHARED_EXTRAS

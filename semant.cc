@@ -81,7 +81,20 @@ static void initialize_constants(void)
     val         = idtable.add_string("_val");
 }
 
+/*   This is the entry point to the semantic checker.
 
+     Your checker should do the following two things:
+
+     1) Check that the program is semantically correct
+     2) Decorate the abstract syntax tree with type information
+        by setting the `type' field in each Expression node.
+        (see `tree.h')
+
+     You are free to first do 1), make sure you catch all semantic
+     errors. Part 2) can be done in a second stage, when you want
+     to build mycoolc.
+ */
+#include <symtab.h>
 #include <set>
 #include <map>
 #include <vector>
@@ -92,6 +105,28 @@ using std::string;
 using std::set;
 using std::map;
 using std::vector;
+
+void program_class::semant()
+{
+    initialize_constants();
+
+    SemantContext ctx;
+    
+    /* some semantic analysis code may go here */
+    
+    ctx.sym.enterscope();
+    install_basic_classes(ctx.sym);
+
+    // check_superclass_is_defined(ctx);
+    check_inheritance_cycle(ctx);
+    
+    ctx.sym.exitscope();
+
+    if (ctx.errors()) {
+	    cerr << "Compilation halted due to static semantic errors." << endl;
+	    exit(1);
+    }
+}
 
 bool contains(const string& needle, const set<string>& haystack) {
     return haystack.cend() != haystack.find(needle);
@@ -124,36 +159,51 @@ string error_message_inheritance_cycle(string class_name) {
         + std::string(", is involved in an inheritance cycle.");
 }
 
-void ClassTable::check_inheritance_cycle(Classes classes) {
+void program_class::check_inheritance_cycle(SemantContext& ctx) {
     auto parent = map<string, string>();
-    auto klasses = vector<class__class*>(classes->len());
+    auto klasses = vector<class__class*>();
     
     for(auto i = classes->first(); classes->more(i); i = classes->next(i)) {
         auto* cls = (class__class*) classes->nth(i); 
-        parent.insert({ cls->get_name(), cls->get_parent_name() });
+        parent.insert({ 
+            cls->get_name()->get_string(),
+            cls->get_parent()->get_string() 
+        });
         klasses.push_back(cls);
     }
 
-    auto mark = set<string>();
+    auto mark = std::set<string>();
     std::reverse(klasses.begin(), klasses.end());
     for(const auto& cls : klasses) {
-        auto in_loop = check_class_in_loop(cls->get_name(), mark, parent);
+        auto in_loop = check_class_in_loop(cls->get_name()->get_string(), mark, parent);
         if(in_loop) {
-            this->semant_error(cls) 
-                << error_message_inheritance_cycle(cls->get_name())
+            ctx.semant_error(cls) 
+                << error_message_inheritance_cycle(cls->get_name()->get_string())
                 << std::endl;
         };
     }
 }
 
-ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) {
+void program_class::check_superclass_is_defined(SemantContext& ctx) 
+{
+    auto parent = map<string, string>();
+    auto klasses = vector<class__class*>(classes->len());
+    auto definedClasses = std::set<string>();
 
-    /* Fill this in */
-    check_inheritance_cycle(classes);
-
+    for(auto i = classes->first(); classes->more(i); i = classes->next(i)) {
+        auto* cls = (class__class*) classes->nth(i); 
+        auto parent = ctx.sym.probe(cls->get_parent());
+        if (parent == nullptr) {
+            ctx.semant_error(cls) 
+                << "KKK"
+                << cls->get_name()->get_string()
+                << "KKK"
+                << "\n";
+        }
+    }
 }
 
-void ClassTable::install_basic_classes() {
+void program_class::install_basic_classes(CoolSymbolTable& sym) {
 
     // The tree package uses these globals to annotate the classes built below.
    // curr_lineno  = 0;
@@ -184,7 +234,7 @@ void ClassTable::install_basic_classes() {
 			       append_Features(
 					       single_Features(method(cool_abort, nil_Formals(), Object, no_expr())),
 					       single_Features(method(type_name, nil_Formals(), Str, no_expr()))),
-			       single_Features(method(copy, nil_Formals(), SELF_TYPE, no_expr()))),
+			       single_Features(method(::copy, nil_Formals(), SELF_TYPE, no_expr()))),
 	       filename);
 
     // 
@@ -252,6 +302,12 @@ void ClassTable::install_basic_classes() {
 						      Str, 
 						      no_expr()))),
 	       filename);
+
+    sym.addid(Str, Str_class);
+    sym.addid(Int, Int_class);
+    sym.addid(Bool, Bool_class);
+    sym.addid(IO, IO_class);
+    sym.addid(Object, Object_class);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -259,61 +315,34 @@ void ClassTable::install_basic_classes() {
 // semant_error is an overloaded function for reporting errors
 // during semantic analysis.  There are three versions:
 //
-//    ostream& ClassTable::semant_error()                
+//    ostream& SemantContext::semant_error()                
 //
-//    ostream& ClassTable::semant_error(Class_ c)
+//    ostream& SemantContext::semant_error(Class_ c)
 //       print line number and filename for `c'
 //
-//    ostream& ClassTable::semant_error(Symbol filename, tree_node *t)  
+//    ostream& SemantContext::semant_error(Symbol filename, tree_node *t)  
 //       print a line number and filename
 //
 ///////////////////////////////////////////////////////////////////
 
-ostream& ClassTable::semant_error(Class_ c)
+SemantContext::SemantContext(): semant_errors(0), error_stream(cerr)
+{
+
+};
+
+ostream& SemantContext::semant_error(Class_ c)
 {                                                             
     return semant_error(c->get_filename(),c);
 }    
 
-ostream& ClassTable::semant_error(Symbol filename, tree_node *t)
+ostream& SemantContext::semant_error(Symbol filename, tree_node *t)
 {
     error_stream << filename << ":" << t->get_line_number() << ": ";
     return semant_error();
 }
 
-ostream& ClassTable::semant_error()                  
+ostream& SemantContext::semant_error()                  
 {                                                 
     semant_errors++;                            
     return error_stream;
 } 
-
-
-
-/*   This is the entry point to the semantic checker.
-
-     Your checker should do the following two things:
-
-     1) Check that the program is semantically correct
-     2) Decorate the abstract syntax tree with type information
-        by setting the `type' field in each Expression node.
-        (see `tree.h')
-
-     You are free to first do 1), make sure you catch all semantic
-     errors. Part 2) can be done in a second stage, when you want
-     to build mycoolc.
- */
-void program_class::semant()
-{
-    initialize_constants();
-
-    /* ClassTable constructor may do some semantic analysis */
-    ClassTable *classtable = new ClassTable(classes);
-
-    /* some semantic analysis code may go here */
-
-    if (classtable->errors()) {
-	cerr << "Compilation halted due to static semantic errors." << endl;
-	exit(1);
-    }
-}
-
-
