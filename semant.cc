@@ -337,9 +337,7 @@ void program_class::install_basic_classes(CoolSymbolTable &sym)
 //
 ///////////////////////////////////////////////////////////////////
 
-SemantContext::SemantContext() : semant_errors(0), error_stream(cerr){
-
-                                                   };
+SemantContext::SemantContext() : semant_errors(0), error_stream(cerr){};
 
 ostream &SemantContext::semant_error(Class_ c)
 {
