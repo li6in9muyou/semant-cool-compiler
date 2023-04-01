@@ -54,10 +54,10 @@ typedef Cases_class *Cases;
 class SemantContext;
 
 #define program_EXTRAS                                      \
-	void semant();                                          \
 	void dump_with_types(ostream &, int);                   \
 	using CoolSymbolTable = SymbolTable<Symbol, tree_node>; \
 	void install_basic_classes(CoolSymbolTable &);          \
+	void semant();                                          \
 	void check_superclass_undefined(SemantContext &);       \
 	void check_inheritance_cycle(SemantContext &);
 
@@ -65,22 +65,13 @@ class SemantContext;
 	virtual Symbol get_filename() = 0; \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#define class__EXTRAS                                    \
-	void semant(SemantContext &);                        \
-	void check_duplicate_feature_names(SemantContext &); \
-	Symbol get_filename()                                \
-	{                                                    \
-		return filename;                                 \
-	}                                                    \
-	Symbol get_name()                                    \
-	{                                                    \
-		return this->name;                               \
-	};                                                   \
-	Symbol get_parent()                                  \
-	{                                                    \
-		return this->parent;                             \
-	};                                                   \
-	void dump_with_types(ostream &, int);
+#define class__EXTRAS                     \
+	void dump_with_types(ostream &, int); \
+	Symbol get_filename();                \
+	Symbol get_name();                    \
+	Symbol get_parent();                  \
+	void semant(SemantContext &);         \
+	void check_duplicate_feature_names(SemantContext &);
 
 #define Feature_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;

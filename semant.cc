@@ -116,6 +116,21 @@ void class__class::check_duplicate_feature_names(SemantContext &ctx)
 {
 }
 
+Symbol class__class::get_filename()
+{
+    return filename;
+}
+
+Symbol class__class::get_name()
+{
+    return name;
+}
+
+Symbol class__class::get_parent()
+{
+    return parent;
+}
+
 void program_class::semant()
 {
     initialize_constants();
