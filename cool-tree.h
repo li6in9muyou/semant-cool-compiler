@@ -126,12 +126,6 @@ class SemantContext;
 
 class program_class : public Program_class
 {
-private:
-   using CoolSymbolTable = SymbolTable<Symbol, tree_node>;
-   void install_basic_classes(CoolSymbolTable &);
-   void check_superclass_undefined(SemantContext &);
-   void check_inheritance_cycle(SemantContext &);
-
 protected:
    Classes classes;
 
@@ -170,14 +164,6 @@ public:
    }
    Class_ copy_Class_();
    void dump(ostream &stream, int n);
-   Symbol get_name()
-   {
-      return this->name;
-   };
-   Symbol get_parent()
-   {
-      return this->parent;
-   };
 
 #ifdef Class__SHARED_EXTRAS
    Class__SHARED_EXTRAS
