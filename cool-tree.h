@@ -135,7 +135,7 @@ class program_class : public Program_class {
 private:
    using CoolSymbolTable = SymbolTable<Symbol, tree_node>;
    void install_basic_classes(CoolSymbolTable&);
-   void check_superclass_is_defined(SemantContext&);
+   void check_superclass_undefined(SemantContext&);
    void check_inheritance_cycle(SemantContext&);
 protected:
    Classes classes;

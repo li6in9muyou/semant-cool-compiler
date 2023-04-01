@@ -117,7 +117,7 @@ void program_class::semant()
     ctx.sym.enterscope();
     install_basic_classes(ctx.sym);
 
-    // check_superclass_is_defined(ctx);
+    check_superclass_undefined(ctx);
     check_inheritance_cycle(ctx);
     
     ctx.sym.exitscope();
@@ -159,6 +159,14 @@ string error_message_inheritance_cycle(string class_name) {
         + std::string(", is involved in an inheritance cycle.");
 }
 
+string error_message_superclass_undefined(string class_name, string parent_name) {
+    return 
+        std::string("Class ") + class_name 
+        + std::string(" inherits from an undefined class ") 
+        + parent_name 
+        + std::string(".");
+}
+
 void program_class::check_inheritance_cycle(SemantContext& ctx) {
     auto parent = map<string, string>();
     auto klasses = vector<class__class*>();
@@ -184,21 +192,23 @@ void program_class::check_inheritance_cycle(SemantContext& ctx) {
     }
 }
 
-void program_class::check_superclass_is_defined(SemantContext& ctx) 
+void program_class::check_superclass_undefined(SemantContext& ctx) 
 {
     auto parent = map<string, string>();
     auto klasses = vector<class__class*>(classes->len());
     auto definedClasses = std::set<string>();
 
-    for(auto i = classes->first(); classes->more(i); i = classes->next(i)) {
+    auto len = classes->len();
+    for(auto i = len-1; i >= 0; i--) {
         auto* cls = (class__class*) classes->nth(i); 
         auto parent = ctx.sym.probe(cls->get_parent());
         if (parent == nullptr) {
             ctx.semant_error(cls) 
-                << "KKK"
-                << cls->get_name()->get_string()
-                << "KKK"
-                << "\n";
+                << error_message_superclass_undefined(
+                    cls->get_name()->get_string(),
+                    cls->get_parent()->get_string()
+                ) 
+                << std::endl;
         }
     }
 }
