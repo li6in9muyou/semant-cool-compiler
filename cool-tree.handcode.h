@@ -70,6 +70,7 @@ class SemantContext;
 	Symbol get_filename();                \
 	Symbol get_name();                    \
 	Symbol get_parent();                  \
+	Features get_features();              \
 	void semant(SemantContext &);         \
 	void check_duplicate_feature_names(SemantContext &);
 

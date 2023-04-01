@@ -131,6 +131,11 @@ Symbol class__class::get_parent()
     return parent;
 }
 
+Features class__class::get_features()
+{
+    return features;
+}
+
 void program_class::semant()
 {
     initialize_constants();
