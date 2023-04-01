@@ -22,34 +22,31 @@ yellow() {
 
 do_make=true
 
-while getopts "q" opt
-do
-    case $opt in
-    (q) do_make=false ;;
-    (*) printf "-q: skip \"make semant\"" && exit 1 ;;
-    esac
+while getopts "q" opt; do
+  case $opt in
+  q) do_make=false ;;
+  *) printf "-q: skip \"make semant\"" && exit 1 ;;
+  esac
 done
-shift $((OPTIND-1))
+shift $((OPTIND - 1))
 
 case $do_make in
-  (true) make -j8 semant;;
+true) make -j8 semant ;;
 esac
 
-for input_cl in "$@"
-do
-    echo
-    yellow "$input_cl"
-    if [[ ! -f "$input_cl" ]]; then
-        red "FILE NOT FOUND"
-        continue;
-    fi
+for input_cl in "$@"; do
+  echo
+  yellow "$input_cl"
+  if [[ ! -f "$input_cl" ]]; then
+    red "FILE NOT FOUND"
+    continue
+  fi
 
-    if diff -u --color \
-             --label actual <(actual "$input_cl") \
-             --label expected <(expected "$input_cl"); then
-      green PASS
-    else
-      red FAIL
-    fi
+  if diff -u --color \
+    --label actual <(actual "$input_cl") \
+    --label expected <(expected "$input_cl"); then
+    green PASS
+  else
+    red FAIL
+  fi
 done
-
