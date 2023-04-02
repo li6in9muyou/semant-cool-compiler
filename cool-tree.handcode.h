@@ -74,11 +74,19 @@ class SemantContext;
 	void semant(SemantContext &);         \
 	void check_duplicate_feature_names(SemantContext &);
 
-#define Feature_EXTRAS \
+#define Feature_EXTRAS                    \
+	virtual void semant(SemantContext &); \
 	virtual void dump_with_types(ostream &, int) = 0;
 
 #define Feature_SHARED_EXTRAS \
 	void dump_with_types(ostream &, int);
+
+#define method_EXTRAS             \
+	void semant(SemantContext &); \
+	void check_duplicate_method_class(SemantContext &);
+
+#define attr_EXTRAS \
+	void semant(SemantContext &);
 
 #define Formal_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;

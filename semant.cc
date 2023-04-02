@@ -108,12 +108,30 @@ using std::vector;
 void class__class::semant(SemantContext &ctx)
 {
     ctx.sym.enterscope();
-
+    check_duplicate_feature_names(ctx);
     ctx.sym.exitscope();
 }
 
 void class__class::check_duplicate_feature_names(SemantContext &ctx)
 {
+    auto features = get_features();
+    for (auto i = features->first(); features->more(i); i = features->next(i))
+    {
+        features->nth(i)->semant(ctx);
+    }
+}
+
+void method_class::semant(SemantContext &ctx)
+{
+}
+
+void attr_class::semant(SemantContext &ctx)
+{
+}
+
+void method_class::check_duplicate_method_class(SemantContext &ctx)
+{
+    const auto bad = ctx.methods.probe(name);
 }
 
 Symbol class__class::get_filename()
