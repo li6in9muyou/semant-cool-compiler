@@ -28,10 +28,9 @@ private:
   ostream &error_stream;
 
 public:
-  CoolSymbolTable sym;
   ClassTable classTable;
-  MethodScope methods;
-  AttributeScope attributes;
+  MethodScope methodTable;
+  AttributeScope attributeTable;
   SemantContext();
   int errors() { return semant_errors; }
   ostream &semant_error();

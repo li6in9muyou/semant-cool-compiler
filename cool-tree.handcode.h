@@ -53,40 +53,50 @@ typedef Cases_class *Cases;
 #include "symtab.h"
 class SemantContext;
 
-#define program_EXTRAS                                      \
-	void dump_with_types(ostream &, int);                   \
-	using CoolSymbolTable = SymbolTable<Symbol, tree_node>; \
-	void install_basic_classes(CoolSymbolTable &);          \
-	void semant();                                          \
-	void check_superclass_undefined(SemantContext &);       \
-	void check_inheritance_cycle(SemantContext &);
+#define program_EXTRAS                           \
+public:                                          \
+	void dump_with_types(ostream &, int);        \
+	void install_basic_classes(SemantContext &); \
+	void semant();                               \
+	void check_Main_is_defined(SemantContext &);
 
 #define Class__EXTRAS                  \
 	virtual Symbol get_filename() = 0; \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#define class__EXTRAS                     \
-	void dump_with_types(ostream &, int); \
-	Symbol get_filename();                \
-	Symbol get_name();                    \
-	Symbol get_parent();                  \
-	Features get_features();              \
-	void semant(SemantContext &);         \
-	void check_duplicate_feature_names(SemantContext &);
+#define class__EXTRAS                                         \
+public:                                                       \
+	void dump_with_types(ostream &, int);                     \
+	Symbol get_name();                                        \
+	Symbol get_filename();                                    \
+	void semant(SemantContext &);                             \
+	void check_not_redefined_and_register(SemantContext &);   \
+                                                              \
+private:                                                      \
+	void check_superclass_is_defined(SemantContext &);        \
+	void check_superclass_is_not_in_cycle(SemantContext &);   \
+	void check_superclass_is_not_primitives(SemantContext &); \
+	void check_Main_has_main(SemantContext &);
 
-#define Feature_EXTRAS                    \
-	virtual void semant(SemantContext &); \
-	virtual void dump_with_types(ostream &, int) = 0;
+#define Feature_EXTRAS                                \
+public:                                               \
+	virtual void semant(SemantContext &) = 0;         \
+	virtual void dump_with_types(ostream &, int) = 0; \
+	virtual void check_not_redefined_and_register(SemantContext &) = 0;
 
-#define Feature_SHARED_EXTRAS \
-	void dump_with_types(ostream &, int);
+#define Feature_SHARED_EXTRAS                                        \
+	void dump_with_types(ostream &, int);                            \
+	void check_not_redefined_and_register(SemantContext &) override; \
+	void semant(SemantContext &) override;
 
-#define method_EXTRAS             \
-	void semant(SemantContext &); \
-	void check_duplicate_method_class(SemantContext &);
+#define method_EXTRAS                                   \
+private:                                                \
+	void check_duplicate_method_class(SemantContext &); \
+	void check_return_type_is_defined(SemantContext &);
 
 #define attr_EXTRAS \
-	void semant(SemantContext &);
+private:            \
+	void check_type_decl_is_defined(SemantContext &);
 
 #define Formal_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;

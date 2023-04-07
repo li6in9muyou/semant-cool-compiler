@@ -107,18 +107,54 @@ using std::vector;
 
 void class__class::semant(SemantContext &ctx)
 {
-    ctx.sym.enterscope();
-    check_duplicate_feature_names(ctx);
-    ctx.sym.exitscope();
-}
 
-void class__class::check_duplicate_feature_names(SemantContext &ctx)
-{
-    auto features = get_features();
+    check_superclass_is_defined(ctx);
+    check_superclass_is_not_in_cycle(ctx);
+    check_superclass_is_not_primitives(ctx);
+    check_Main_has_main(ctx);
+
+    ctx.methodTable.enterscope();
+    ctx.attributeTable.enterscope();
     for (auto i = features->first(); features->more(i); i = features->next(i))
     {
-        features->nth(i)->semant(ctx);
+        features->nth(i)->check_not_redefined_and_register(ctx);
     }
+    ctx.methodTable.exitscope();
+    ctx.attributeTable.exitscope();
+}
+
+string error_message_class_is_redefined()
+{
+    return "REDEFINED";
+}
+
+void class__class::check_not_redefined_and_register(SemantContext &ctx)
+{
+    const auto good = ctx.classTable.probe(name) == nullptr;
+    if (good)
+    {
+        ctx.classTable.addid(name, this);
+    }
+    else
+    {
+        ctx.semant_error() << error_message_class_is_redefined();
+    }
+}
+
+void class__class::check_superclass_is_defined(SemantContext &ctx)
+{
+}
+
+void class__class::check_superclass_is_not_in_cycle(SemantContext &ctx)
+{
+}
+
+void class__class::check_superclass_is_not_primitives(SemantContext &ctx)
+{
+}
+
+void class__class::check_Main_has_main(SemantContext &ctx)
+{
 }
 
 void method_class::semant(SemantContext &ctx)
@@ -131,27 +167,16 @@ void attr_class::semant(SemantContext &ctx)
 
 void method_class::check_duplicate_method_class(SemantContext &ctx)
 {
-    const auto bad = ctx.methods.probe(name);
+    const auto bad = ctx.methodTable.probe(name);
 }
+
+void method_class::check_not_redefined_and_register(SemantContext &ctx) {}
+
+void attr_class::check_not_redefined_and_register(SemantContext &ctx) {}
 
 Symbol class__class::get_filename()
 {
     return filename;
-}
-
-Symbol class__class::get_name()
-{
-    return name;
-}
-
-Symbol class__class::get_parent()
-{
-    return parent;
-}
-
-Features class__class::get_features()
-{
-    return features;
 }
 
 void program_class::semant()
@@ -162,105 +187,84 @@ void program_class::semant()
 
     /* some semantic analysis code may go here */
 
-    ctx.sym.enterscope();
-    install_basic_classes(ctx.sym);
+    ctx.classTable.enterscope();
 
-    check_inheritance_cycle(ctx);
-    ctx.abort_if_error();
-
-    check_superclass_undefined(ctx);
-    ctx.abort_if_error();
-
-    ctx.sym.exitscope();
-}
-
-bool contains(const string &needle, const set<string> &haystack)
-{
-    return haystack.cend() != haystack.find(needle);
-}
-
-bool check_class_in_loop(
-    const string &me,
-    set<string> &mark,
-    map<string, string> &parent)
-{
-    if (contains(me, mark))
-    {
-        return true;
-    }
-
-    auto ans = false;
-
-    if (parent[me] != "" && parent[me] != "Object")
-    {
-        mark.insert(me);
-        ans = check_class_in_loop(parent[me], mark, parent);
-        mark.erase(me);
-    }
-
-    return ans;
-}
-
-string error_message_inheritance_cycle(string class_name)
-{
-    return std::string("Class ") + class_name + std::string(", or an ancestor of ") + class_name + std::string(", is involved in an inheritance cycle.");
-}
-
-string error_message_superclass_undefined(string class_name, string parent_name)
-{
-    return std::string("Class ") + class_name + std::string(" inherits from an undefined class ") + parent_name + std::string(".");
-}
-
-void program_class::check_inheritance_cycle(SemantContext &ctx)
-{
-    auto parent = map<string, string>();
-    auto klasses = vector<class__class *>();
+    install_basic_classes(ctx);
 
     for (auto i = classes->first(); classes->more(i); i = classes->next(i))
     {
         auto *cls = (class__class *)classes->nth(i);
-        parent.insert({cls->get_name()->get_string(),
-                       cls->get_parent()->get_string()});
-        klasses.push_back(cls);
+        cls->check_not_redefined_and_register(ctx);
     }
+    ctx.abort_if_error();
 
-    auto mark = std::set<string>();
-    std::reverse(klasses.begin(), klasses.end());
-    for (const auto &cls : klasses)
-    {
-        auto in_loop = check_class_in_loop(cls->get_name()->get_string(), mark, parent);
-        if (in_loop)
-        {
-            ctx.semant_error(cls)
-                << error_message_inheritance_cycle(cls->get_name()->get_string())
-                << std::endl;
-        };
-    }
-}
+    check_Main_is_defined(ctx);
+    ctx.abort_if_error();
 
-void program_class::check_superclass_undefined(SemantContext &ctx)
-{
-    auto parent = map<string, string>();
-    auto klasses = vector<class__class *>(classes->len());
-    auto definedClasses = std::set<string>();
-
-    auto len = classes->len();
-    for (auto i = len - 1; i >= 0; i--)
+    for (auto i = classes->first(); classes->more(i); i = classes->next(i))
     {
         auto *cls = (class__class *)classes->nth(i);
-        auto parent = ctx.sym.probe(cls->get_parent());
-        if (parent == nullptr)
-        {
-            ctx.semant_error(cls)
-                << error_message_superclass_undefined(
-                       cls->get_name()->get_string(),
-                       cls->get_parent()->get_string())
-                << std::endl;
-        }
+        cls->semant(ctx);
+    }
+    ctx.abort_if_error();
+
+    ctx.classTable.exitscope();
+}
+
+string error_message_Main_is_not_defined()
+{
+    return "Class Main is not defined.";
+}
+
+void program_class::check_Main_is_defined(SemantContext &ctx)
+{
+    const auto bad = ctx.classTable.probe(Main) == nullptr;
+
+    if (bad)
+    {
+        ctx.semant_error() << error_message_Main_is_not_defined();
     }
 }
 
-void program_class::install_basic_classes(CoolSymbolTable &sym)
+// bool contains(const string &needle, const set<string> &haystack)
+// {
+//     return haystack.cend() != haystack.find(needle);
+// }
+
+// bool check_class_in_loop(
+//     const string &me,
+//     set<string> &mark,
+//     map<string, string> &parent)
+// {
+//     if (contains(me, mark))
+//     {
+//         return true;
+//     }
+
+//     auto ans = false;
+
+//     if (parent[me] != "" && parent[me] != "Object")
+//     {
+//         mark.insert(me);
+//         ans = check_class_in_loop(parent[me], mark, parent);
+//         mark.erase(me);
+//     }
+
+//     return ans;
+// }
+
+string
+error_message_superclass_is_in_cycle(string class_name)
+{
+    return std::string("Class ") + class_name + std::string(", or an ancestor of ") + class_name + std::string(", is involved in an inheritance cycle.");
+}
+
+string error_message_superclass_is_not_defined(string class_name, string parent_name)
+{
+    return std::string("Class ") + class_name + std::string(" inherits from an undefined class ") + parent_name + std::string(".");
+}
+
+void program_class::install_basic_classes(SemantContext &ctx)
 {
 
     // The tree package uses these globals to annotate the classes built below.
@@ -361,11 +365,11 @@ void program_class::install_basic_classes(CoolSymbolTable &sym)
                                           no_expr()))),
                filename);
 
-    sym.addid(Str, Str_class);
-    sym.addid(Int, Int_class);
-    sym.addid(Bool, Bool_class);
-    sym.addid(IO, IO_class);
-    sym.addid(Object, Object_class);
+    ctx.classTable.addid(Str, (class__class *)Str_class);
+    ctx.classTable.addid(Int, (class__class *)Int_class);
+    ctx.classTable.addid(Bool, (class__class *)Bool_class);
+    ctx.classTable.addid(IO, (class__class *)IO_class);
+    ctx.classTable.addid(Object, (class__class *)Object_class);
 }
 
 ////////////////////////////////////////////////////////////////////
