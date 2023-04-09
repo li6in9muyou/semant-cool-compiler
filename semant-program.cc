@@ -110,7 +110,8 @@ void program_class::semant()
     check_Main_is_defined(ctx);
     ctx.abort_if_error();
 
-    for (auto i = classes->first(); classes->more(i); i = classes->next(i))
+    const auto cnt = classes->len();
+    for (auto i = cnt - 1; i >= 0; i -= 1)
     {
         auto *cls = (class__class *)classes->nth(i);
         cls->semant(ctx);
