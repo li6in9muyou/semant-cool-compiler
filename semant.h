@@ -3,7 +3,7 @@
 
 #include "cool-tree.h"
 
-static Symbol
+extern Symbol
     arg,
     arg2,
     Bool,
