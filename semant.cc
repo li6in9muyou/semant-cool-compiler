@@ -222,7 +222,7 @@ void program_class::check_Main_is_defined(SemantContext &ctx)
 
     if (bad)
     {
-        ctx.semant_error() << error_message_Main_is_not_defined();
+        ctx.semant_error() << error_message_Main_is_not_defined() << "\n";
     }
 }
 
