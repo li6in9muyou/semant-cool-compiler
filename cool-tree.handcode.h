@@ -89,9 +89,8 @@ public:                                               \
 	void check_not_redefined_and_register(SemantContext &) override; \
 	void semant(SemantContext &) override;
 
-#define method_EXTRAS                                   \
-private:                                                \
-	void check_duplicate_method_class(SemantContext &); \
+#define method_EXTRAS \
+private:              \
 	void check_return_type_is_defined(SemantContext &);
 
 #define attr_EXTRAS \
