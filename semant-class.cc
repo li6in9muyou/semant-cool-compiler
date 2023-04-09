@@ -3,6 +3,9 @@
 using std::string;
 
 #include "semant.h"
+string error_message_superclass_is_in_cycle(const string &class_name);
+string error_message_superclass_is_not_defined(const string &class_name, const string &parent_name);
+string error_message_superclass_is_primitive(const string &class_name, const string &parent_name);
 
 void class__class::semant(SemantContext &ctx)
 {
@@ -61,12 +64,17 @@ Symbol class__class::get_filename()
     return filename;
 }
 
-string error_message_superclass_is_in_cycle(string class_name)
+string error_message_superclass_is_in_cycle(const string &class_name)
 {
     return std::string("Class ") + class_name + std::string(", or an ancestor of ") + class_name + std::string(", is involved in an inheritance cycle.");
 }
 
-string error_message_superclass_is_not_defined(string class_name, string parent_name)
+string error_message_superclass_is_not_defined(const string &class_name, const string &parent_name)
 {
     return std::string("Class ") + class_name + std::string(" inherits from an undefined class ") + parent_name + std::string(".");
+}
+
+string error_message_superclass_is_primitive(const string &class_name, const string &parent_name)
+{
+    return std::string("Class ") + class_name + " cannot inherit class " + parent_name + ".";
 }
