@@ -98,17 +98,17 @@ Symbol class__class::get_filename()
 
 string error_message_superclass_is_in_cycle(const string &class_name)
 {
-    return std::string("Class ") + class_name + std::string(", or an ancestor of ") + class_name + std::string(", is involved in an inheritance cycle.");
+    return "Class " + class_name + ", or an ancestor of " + class_name + ", is involved in an inheritance cycle.";
 }
 
 string error_message_superclass_is_not_defined(const string &class_name, const string &parent_name)
 {
-    return std::string("Class ") + class_name + std::string(" inherits from an undefined class ") + parent_name + std::string(".");
+    return "Class " + class_name + " inherits from an undefined class " + parent_name + ".";
 }
 
 string error_message_superclass_is_primitive(const string &class_name, const string &parent_name)
 {
-    return std::string("Class ") + class_name + " cannot inherit class " + parent_name + ".";
+    return "Class " + class_name + " cannot inherit class " + parent_name + ".";
 }
 
 string error_message_class_is_redefined(const string &class_name)
