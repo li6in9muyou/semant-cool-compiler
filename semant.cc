@@ -1,5 +1,7 @@
 #include <iostream>
 using std::cerr;
+#include <string>
+using std::string;
 
 #include "semant.h"
 
@@ -48,7 +50,9 @@ extern char *curr_filename;
 //
 ///////////////////////////////////////////////////////////////////
 
-SemantContext::SemantContext() : semant_errors(0), error_stream(cerr){};
+SemantContext::SemantContext() : semant_errors(0), error_stream(cerr) {}
+
+void SemantContext::set_filename(Symbol filename) { this->filename = filename; }
 
 void SemantContext::abort_if_error()
 {
@@ -59,9 +63,9 @@ void SemantContext::abort_if_error()
     }
 }
 
-ostream &SemantContext::semant_error(Class_ c)
+ostream &SemantContext::semant_error(tree_node *t)
 {
-    return semant_error(c->get_filename(), c);
+    return semant_error(filename, t);
 }
 
 ostream &SemantContext::semant_error(Symbol filename, tree_node *t)

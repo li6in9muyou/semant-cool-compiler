@@ -103,6 +103,7 @@ void program_class::semant()
     for (auto i = classes->first(); classes->more(i); i = classes->next(i))
     {
         auto *cls = (class__class *)classes->nth(i);
+        ctx.set_filename(cls->get_filename());
         cls->check_not_redefined_and_register(ctx);
     }
     ctx.abort_if_error();
@@ -114,6 +115,7 @@ void program_class::semant()
     for (auto i = cnt - 1; i >= 0; i -= 1)
     {
         auto *cls = (class__class *)classes->nth(i);
+        ctx.set_filename(cls->get_filename());
         cls->semant(ctx);
     }
     ctx.abort_if_error();
