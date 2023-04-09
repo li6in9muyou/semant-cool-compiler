@@ -10,6 +10,7 @@ using std::string;
 string error_message_superclass_is_in_cycle(const string &class_name);
 string error_message_superclass_is_not_defined(const string &class_name, const string &parent_name);
 string error_message_superclass_is_primitive(const string &class_name, const string &parent_name);
+string error_message_class_is_redefined(const string &class_name);
 
 void class__class::semant(SemantContext &ctx)
 {
@@ -29,11 +30,6 @@ void class__class::semant(SemantContext &ctx)
     ctx.attributeTable.exitscope();
 }
 
-string error_message_class_is_redefined()
-{
-    return "REDEFINED";
-}
-
 void class__class::check_not_redefined_and_register(SemantContext &ctx)
 {
     const auto good = ctx.classTable.probe(name) == nullptr;
@@ -43,7 +39,9 @@ void class__class::check_not_redefined_and_register(SemantContext &ctx)
     }
     else
     {
-        ctx.semant_error() << error_message_class_is_redefined();
+        ctx.semant_error(this)
+            << error_message_class_is_redefined(name->get_string())
+            << "\n";
     }
 }
 
@@ -111,4 +109,9 @@ string error_message_superclass_is_not_defined(const string &class_name, const s
 string error_message_superclass_is_primitive(const string &class_name, const string &parent_name)
 {
     return std::string("Class ") + class_name + " cannot inherit class " + parent_name + ".";
+}
+
+string error_message_class_is_redefined(const string &class_name)
+{
+    return "Class " + class_name + " was previously defined.";
 }
