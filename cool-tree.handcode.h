@@ -51,7 +51,11 @@ typedef Cases_class *Cases;
 	virtual void dump_with_types(ostream &, int) = 0;
 
 #include "symtab.h"
+#include <set>
+#include <string>
 class SemantContext;
+class class__class;
+using ClassTable = SymbolTable<Symbol, class__class>;
 
 #define program_EXTRAS                           \
 public:                                          \
@@ -64,18 +68,19 @@ public:                                          \
 	virtual Symbol get_filename() = 0; \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#define class__EXTRAS                                         \
-public:                                                       \
-	void dump_with_types(ostream &, int);                     \
-	Symbol get_name();                                        \
-	Symbol get_filename();                                    \
-	void semant(SemantContext &);                             \
-	void check_not_redefined_and_register(SemantContext &);   \
-                                                              \
-private:                                                      \
-	void check_superclass_is_defined(SemantContext &);        \
-	void check_superclass_is_not_in_cycle(SemantContext &);   \
-	void check_superclass_is_not_primitives(SemantContext &); \
+#define class__EXTRAS                                                                      \
+public:                                                                                    \
+	void dump_with_types(ostream &, int);                                                  \
+	Symbol get_name();                                                                     \
+	Symbol get_filename();                                                                 \
+	void semant(SemantContext &);                                                          \
+	void check_not_redefined_and_register(SemantContext &);                                \
+                                                                                           \
+private:                                                                                   \
+	bool check_class_in_loop(ClassTable &, const class__class &, std::set<std::string> &); \
+	void check_superclass_is_defined(SemantContext &);                                     \
+	void check_superclass_is_not_in_cycle(SemantContext &);                                \
+	void check_superclass_is_not_primitives(SemantContext &);                              \
 	void check_Main_has_main(SemantContext &);
 
 #define Feature_EXTRAS                                \
