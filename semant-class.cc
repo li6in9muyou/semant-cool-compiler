@@ -76,6 +76,11 @@ bool class__class::check_class_in_loop(
     std::set<string> &mark)
 {
     const string my_name(me.name->get_string());
+
+    if (my_name == "Object")
+    {
+        return false;
+    }
     if (contains(my_name, mark))
     {
         return true;
@@ -83,13 +88,9 @@ bool class__class::check_class_in_loop(
 
     auto ans = false;
     const auto my_parent = classTable.probe(me.parent);
-    const auto my_parent_name = string(me.parent->get_string());
-    if (my_parent_name != "" && my_parent_name != "Object")
-    {
-        mark.insert(my_name);
-        ans = check_class_in_loop(classTable, *my_parent, mark);
-        mark.erase(my_name);
-    }
+    mark.insert(my_name);
+    ans = check_class_in_loop(classTable, *my_parent, mark);
+    mark.erase(my_name);
 
     return ans;
 }
