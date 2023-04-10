@@ -1,11 +1,16 @@
 #include <symtab.h>
 #include <string>
+#include <set>
+#include <map>
 #include <algorithm>
 #include <array>
+using std::map;
+using std::set;
 using std::string;
 
 #include "semant.h"
 #include "cool-tree.h"
+#include "list.h"
 
 string error_message_superclass_is_in_cycle(const string &class_name);
 string error_message_superclass_is_not_defined(const string &class_name, const string &parent_name);
@@ -60,8 +65,47 @@ void class__class::check_superclass_is_defined(SemantContext &ctx)
     }
 }
 
+bool contains(const string &needle, const std::set<string> &haystack)
+{
+    return haystack.cend() != haystack.find(needle);
+}
+
+bool class__class::check_class_in_loop(
+    ClassTable &classTable,
+    const class__class &me,
+    std::set<string> &mark)
+{
+    const string my_name(me.name->get_string());
+    if (contains(my_name, mark))
+    {
+        return true;
+    }
+
+    auto ans = false;
+    const auto my_parent = classTable.probe(me.parent);
+    const auto my_parent_name = string(me.parent->get_string());
+    if (my_parent_name != "" && my_parent_name != "Object")
+    {
+        mark.insert(my_name);
+        ans = check_class_in_loop(classTable, *my_parent, mark);
+        mark.erase(my_name);
+    }
+
+    return ans;
+}
+
 void class__class::check_superclass_is_not_in_cycle(SemantContext &ctx)
 {
+    std::set<string> mark;
+
+    const auto my_parent = ctx.classTable.probe(parent);
+    const auto bad = check_class_in_loop(ctx.classTable, *my_parent, mark);
+    if (bad)
+    {
+        ctx.semant_error(this)
+            << error_message_superclass_is_in_cycle(this->name->get_string())
+            << "\n";
+    }
 }
 
 void class__class::check_superclass_is_not_primitives(SemantContext &ctx)
