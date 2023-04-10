@@ -8,33 +8,6 @@ using std::string;
 extern int semant_debug;
 extern char *curr_filename;
 
-// bool contains(const string &needle, const set<string> &haystack)
-// {
-//     return haystack.cend() != haystack.find(needle);
-// }
-
-// bool check_class_in_loop(
-//     const string &me,
-//     set<string> &mark,
-//     map<string, string> &parent)
-// {
-//     if (contains(me, mark))
-//     {
-//         return true;
-//     }
-
-//     auto ans = false;
-
-//     if (parent[me] != "" && parent[me] != "Object")
-//     {
-//         mark.insert(me);
-//         ans = check_class_in_loop(parent[me], mark, parent);
-//         mark.erase(me);
-//     }
-
-//     return ans;
-// }
-
 ////////////////////////////////////////////////////////////////////
 //
 // semant_error is an overloaded function for reporting errors
