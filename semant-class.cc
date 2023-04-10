@@ -24,6 +24,10 @@ void class__class::semant(SemantContext &ctx)
     check_superclass_is_defined(ctx);
     check_superclass_is_not_in_cycle(ctx);
     check_superclass_is_not_primitives(ctx);
+    if (ctx.errors())
+    {
+        return;
+    }
 
     ctx.methodTable.enterscope();
     ctx.attributeTable.enterscope();
@@ -88,6 +92,10 @@ bool class__class::check_class_in_loop(
 
     auto ans = false;
     const auto my_parent = classTable.probe(me.parent);
+    if (my_parent == nullptr)
+    {
+        return false;
+    }
     mark.insert(my_name);
     ans = check_class_in_loop(classTable, *my_parent, mark);
     mark.erase(my_name);
@@ -100,6 +108,10 @@ void class__class::check_superclass_is_not_in_cycle(SemantContext &ctx)
     std::set<string> mark;
 
     const auto my_parent = ctx.classTable.probe(parent);
+    if (my_parent == nullptr)
+    {
+        return;
+    }
     const auto bad = check_class_in_loop(ctx.classTable, *my_parent, mark);
     if (bad)
     {
