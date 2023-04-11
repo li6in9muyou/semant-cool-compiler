@@ -39,6 +39,12 @@ void class__class::semant(SemantContext &ctx)
     }
     check_Main_has_main(ctx);
 
+    const auto cnt = features->len();
+    for (auto i = cnt - 1; i >= 0; i -= 1)
+    {
+        features->nth(i)->semant(ctx);
+    }
+
     ctx.methodTable.exitscope();
     ctx.attributeTable.exitscope();
 }

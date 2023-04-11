@@ -98,8 +98,9 @@ public:                                               \
 private:              \
 	void check_return_type_is_defined(SemantContext &);
 
-#define attr_EXTRAS \
-private:            \
+#define attr_EXTRAS                                                \
+private:                                                           \
+	void check_no_shadow_attribute_in_superclass(SemantContext &); \
 	void check_type_decl_is_defined(SemantContext &);
 
 #define Formal_EXTRAS \

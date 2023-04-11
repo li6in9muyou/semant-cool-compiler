@@ -14,7 +14,6 @@ void method_class::check_not_redefined_and_register(SemantContext &ctx)
     const auto redefined = nullptr != ctx.methodTable.probe(name);
     if (!redefined)
     {
-
         ctx.methodTable.addid(name, this);
     }
     else
