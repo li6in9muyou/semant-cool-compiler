@@ -21,10 +21,11 @@ string error_message_no_main_in_Main();
 void class__class::semant(SemantContext &ctx)
 {
 
+    const auto old_errors = ctx.errors();
     check_superclass_is_defined(ctx);
     check_superclass_is_not_in_cycle(ctx);
     check_superclass_is_not_primitives(ctx);
-    if (ctx.errors())
+    if (old_errors < ctx.errors())
     {
         return;
     }
