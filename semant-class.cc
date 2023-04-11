@@ -167,6 +167,11 @@ Symbol class__class::get_filename()
     return filename;
 }
 
+Symbol class__class::get_name()
+{
+    return name;
+}
+
 string error_message_superclass_is_in_cycle(const string &class_name)
 {
     return "Class " + class_name + ", or an ancestor of " + class_name + ", is involved in an inheritance cycle.";
