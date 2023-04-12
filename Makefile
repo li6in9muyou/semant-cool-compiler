@@ -2,14 +2,14 @@
 ASSN = 4
 CLASS= cs143
 CLASSDIR= ../..
-LIB= -L/usr/pubsw/lib
+LIB= -L/usr/pubsw/lib -lpthread -ldl
 AR= gar
 ARCHIVE_NEW= -cr
 RANLIB= gar -qs
 
 SRC= semant.cc semant.h cool-tree.h cool-tree.handcode.h good.cl bad.cl README
 CSRC= semant-phase.cc symtab_example.cc  handle_flags.cc  ast-lex.cc ast-parse.cc utilities.cc stringtab.cc dumptype.cc tree.cc cool-tree.cc
-LI6QSRC= semant-program.cc semant-class.cc semant-attr.cc semant-method.cc
+LI6QSRC= semant-program.cc semant-class.cc semant-attr.cc semant-method.cc loguru.cc
 TSRC= mycoolc mysemant cool-tree.aps
 CGEN=
 HGEN=
