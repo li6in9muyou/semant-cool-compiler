@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+mylexer "$1" | myparser | ./semant 2>&1
