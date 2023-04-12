@@ -8,10 +8,10 @@ string error_message_attribute_type_is_not_defined(const string &attribute_name,
 
 void attr_class::check_not_redefined_and_register(SemantContext &ctx)
 {
-    const auto redefined = nullptr != ctx.attributeTable.probe(name);
+    const auto redefined = nullptr != ctx.familyAttributeTable->lookup(name);
     if (!redefined)
     {
-        ctx.attributeTable.addid(name, this);
+        ctx.familyAttributeTable->addid(name, this);
     }
     else
     {

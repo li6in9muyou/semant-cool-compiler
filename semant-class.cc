@@ -30,8 +30,11 @@ void class__class::semant(SemantContext &ctx)
         return;
     }
 
-    ctx.methodTable.enterscope();
-    ctx.attributeTable.enterscope();
+    ctx.familyMethodTable = ctx.get_or_create_family_method_table(name);
+    ctx.familyAttributeTable = ctx.get_or_create_family_attribute_table(name);
+
+    ctx.familyMethodTable->enterscope();
+    ctx.familyAttributeTable->enterscope();
 
     for (auto i = features->first(); features->more(i); i = features->next(i))
     {
@@ -44,9 +47,6 @@ void class__class::semant(SemantContext &ctx)
     {
         features->nth(i)->semant(ctx);
     }
-
-    ctx.methodTable.exitscope();
-    ctx.attributeTable.exitscope();
 }
 
 void class__class::check_not_redefined_and_register(SemantContext &ctx)
@@ -158,7 +158,7 @@ void class__class::check_Main_has_main(SemantContext &ctx)
 {
     if (name->equal_string("Main", 4))
     {
-        const auto not_found = nullptr == ctx.methodTable.probe(main_meth);
+        const auto not_found = nullptr == ctx.familyMethodTable->probe(main_meth);
         if (not_found)
         {
             ctx.semant_error(this)

@@ -1,5 +1,7 @@
 #ifndef SEMANT_H_
 #define SEMANT_H_
+#include <vector>
+using std::vector;
 
 #include "cool-tree.h"
 
@@ -34,6 +36,8 @@ extern Symbol
 using ClassTable = SymbolTable<Symbol, class__class>;
 using AttributeTable = SymbolTable<Symbol, attr_class>;
 using MethodTable = SymbolTable<Symbol, method_class>;
+using ClassMethodTable = SymbolTable<Symbol, MethodTable>;
+using ClassAttributeTable = SymbolTable<Symbol, AttributeTable>;
 
 class SemantContext
 {
@@ -41,11 +45,15 @@ private:
   int semant_errors;
   ostream &error_stream;
   Symbol filename;
+  vector<MethodTable> methodStore;
+  vector<AttributeTable> attributeStore;
+  ClassMethodTable classMethodLookup;
+  ClassAttributeTable classAttributeLookup;
 
 public:
   ClassTable classTable;
-  MethodTable methodTable;
-  AttributeTable attributeTable;
+  MethodTable *familyMethodTable;
+  AttributeTable *familyAttributeTable;
   SemantContext();
   void set_filename(Symbol filename);
   int errors() { return semant_errors; }
@@ -53,6 +61,8 @@ public:
   ostream &semant_error(tree_node *t);
   ostream &semant_error(Symbol filename, tree_node *t);
   void abort_if_error();
+  MethodTable *get_or_create_family_method_table(Symbol class_symbol);
+  AttributeTable *get_or_create_family_attribute_table(Symbol class_symbol);
 };
 
 #endif

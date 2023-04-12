@@ -11,10 +11,10 @@ void method_class::semant(SemantContext &ctx)
 
 void method_class::check_not_redefined_and_register(SemantContext &ctx)
 {
-    const auto redefined = nullptr != ctx.methodTable.probe(name);
+    const auto redefined = nullptr != ctx.familyMethodTable->lookup(name);
     if (!redefined)
     {
-        ctx.methodTable.addid(name, this);
+        ctx.familyMethodTable->addid(name, this);
     }
     else
     {

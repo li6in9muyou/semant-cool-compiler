@@ -36,6 +36,32 @@ void SemantContext::abort_if_error()
     }
 }
 
+MethodTable *SemantContext::get_or_create_family_method_table(Symbol class_symbol)
+{
+    auto *table = classMethodLookup.lookup(class_symbol);
+    if (table == nullptr)
+    {
+        methodStore.emplace_back();
+        table = &methodStore.back();
+        classMethodLookup.enterscope();
+        classMethodLookup.addid(class_symbol, table);
+    }
+    return table;
+}
+
+AttributeTable *SemantContext::get_or_create_family_attribute_table(Symbol class_symbol)
+{
+    auto *table = classAttributeLookup.lookup(class_symbol);
+    if (table == nullptr)
+    {
+        attributeStore.emplace_back();
+        table = &attributeStore.back();
+        classAttributeLookup.enterscope();
+        classAttributeLookup.addid(class_symbol, table);
+    }
+    return table;
+}
+
 ostream &SemantContext::semant_error(tree_node *t)
 {
     return semant_error(filename, t);
