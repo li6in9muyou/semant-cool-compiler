@@ -4,6 +4,7 @@ using std::cerr;
 using std::string;
 
 #include "semant.h"
+#include "loguru.h"
 
 extern int semant_debug;
 extern char *curr_filename;
@@ -41,6 +42,8 @@ MethodTable *SemantContext::get_or_create_family_method_table(Symbol class_symbo
     auto *table = classMethodLookup.lookup(class_symbol);
     if (table == nullptr)
     {
+        LOG_F(INFO, "created family method table for %s", class_symbol->get_string());
+
         methodStore.emplace_back();
         table = &methodStore.back();
         classMethodLookup.enterscope();
@@ -54,6 +57,8 @@ AttributeTable *SemantContext::get_or_create_family_attribute_table(Symbol class
     auto *table = classAttributeLookup.lookup(class_symbol);
     if (table == nullptr)
     {
+        LOG_F(INFO, "created family attribute table for %s", class_symbol->get_string());
+
         attributeStore.emplace_back();
         table = &attributeStore.back();
         classAttributeLookup.enterscope();

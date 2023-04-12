@@ -95,17 +95,25 @@ void program_class::semant()
     loguru::g_preamble_time = false;
     loguru::g_preamble_thread = false;
 
+    LOG_F(INFO, "initialized constant symbols");
     initialize_constants();
-    
+
     SemantContext ctx;
 
     /* some semantic analysis code may go here */
 
+    LOG_F(INFO, "classTable.enterscope");
     ctx.classTable.enterscope();
 
+    LOG_F(INFO, "installed basic classes");
     install_basic_classes(ctx);
+
     const auto any_class = classes->nth(classes->first());
-    ctx.set_filename(any_class->get_filename());
+    const auto filename = any_class->get_filename();
+    ctx.set_filename(filename);
+
+    LOG_F(INFO, "found %d classes in %s", classes->len(), filename->get_string());
+    LOG_F(INFO, "class declaration check");
 
     for (auto i = classes->first(); classes->more(i); i = classes->next(i))
     {
@@ -114,8 +122,12 @@ void program_class::semant()
     }
     ctx.abort_if_error();
 
+    LOG_F(INFO, "class declaration check pass");
+
     check_Main_is_defined(ctx);
     ctx.abort_if_error();
+
+    LOG_F(INFO, "Main check pass");
 
     const auto cnt = classes->len();
     for (auto i = cnt - 1; i >= 0; i -= 1)

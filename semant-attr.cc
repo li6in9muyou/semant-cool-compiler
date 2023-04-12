@@ -2,12 +2,15 @@
 using std::string;
 
 #include "semant.h"
+#include "loguru.h"
 
 string error_message_attribute_redefined(const string &method_name);
 string error_message_attribute_type_is_not_defined(const string &attribute_name, const string type_name);
 
 void attr_class::check_not_redefined_and_register(SemantContext &ctx)
 {
+    LOG_F(INFO, "attribute declration check");
+
     const auto redefined = nullptr != ctx.familyAttributeTable->lookup(name);
     if (!redefined)
     {
@@ -38,6 +41,8 @@ void attr_class::check_no_shadow_attribute_in_superclass(SemantContext &ctx)
 
 void attr_class::semant(SemantContext &ctx)
 {
+    LOG_F(INFO, "attribute semant");
+
     check_type_decl_is_defined(ctx);
     check_no_shadow_attribute_in_superclass(ctx);
 }

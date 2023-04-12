@@ -11,6 +11,7 @@ using std::string;
 #include "semant.h"
 #include "cool-tree.h"
 #include "list.h"
+#include "loguru.h"
 
 string error_message_superclass_is_in_cycle(const string &class_name);
 string error_message_superclass_is_not_defined(const string &class_name, const string &parent_name);
@@ -20,14 +21,21 @@ string error_message_no_main_in_Main();
 
 void class__class::semant(SemantContext &ctx)
 {
+    LOG_F(INFO, "class %s semant", name->get_string());
 
     const auto old_errors = ctx.errors();
+
     check_superclass_is_defined(ctx);
     check_superclass_is_not_in_cycle(ctx);
     check_superclass_is_not_primitives(ctx);
     if (old_errors < ctx.errors())
     {
+        LOG_F(INFO, "found errors in superclass check, return");
         return;
+    }
+    else
+    {
+        LOG_F(INFO, "class superclass check pass");
     }
 
     ctx.familyMethodTable = ctx.get_or_create_family_method_table(name);
@@ -40,7 +48,26 @@ void class__class::semant(SemantContext &ctx)
     {
         features->nth(i)->check_not_redefined_and_register(ctx);
     }
+    if (old_errors < ctx.errors())
+    {
+        LOG_F(INFO, "found errors in feature declaration check, return");
+    }
+    else
+    {
+        LOG_F(INFO, "feature declaration check pass");
+    }
+
     check_Main_has_main(ctx);
+    if (old_errors < ctx.errors())
+    {
+        LOG_F(INFO, "found errors in Main.main check, return");
+    }
+    else
+    {
+        LOG_F(INFO, "Main.main check pass");
+    }
+
+    LOG_F(INFO, "descending into semant");
 
     const auto cnt = features->len();
     for (auto i = cnt - 1; i >= 0; i -= 1)
@@ -51,13 +78,16 @@ void class__class::semant(SemantContext &ctx)
 
 void class__class::check_not_redefined_and_register(SemantContext &ctx)
 {
+    LOG_F(INFO, "class %s precheck", name->get_string());
     const auto good = ctx.classTable.probe(name) == nullptr;
     if (good)
     {
+        LOG_F(INFO, "classTable.addid");
         ctx.classTable.addid(name, this);
     }
     else
     {
+        LOG_F(INFO, "error: redefined");
         ctx.semant_error(this)
             << error_message_class_is_redefined(name->get_string())
             << "\n";
