@@ -3,6 +3,7 @@
 using std::string;
 
 #include "semant.h"
+#include "loguru.h"
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -90,8 +91,12 @@ void initialize_constants(void)
  */
 void program_class::semant()
 {
-    initialize_constants();
+    loguru::g_preamble_date = false;
+    loguru::g_preamble_time = false;
+    loguru::g_preamble_thread = false;
 
+    initialize_constants();
+    
     SemantContext ctx;
 
     /* some semantic analysis code may go here */
