@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include "cool-tree.h"
 
-#include "loguru.h"
-
 extern Program ast_root;      // root of the abstract syntax tree
 FILE *ast_file = stdin;       // we read the AST from standard input
 extern int ast_yyparse(void); // entry point to the AST parser
@@ -14,10 +12,6 @@ void handle_flags(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {
-  loguru::g_preamble_date = false;
-  loguru::g_preamble_time = false;
-  loguru::g_preamble_thread = false;
-  loguru::init(argc, argv);
   handle_flags(argc, argv);
   ast_yyparse();
   ast_root->semant();
