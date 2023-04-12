@@ -16,7 +16,6 @@ mysemant
 parser
 README
 semant
-semant-phase.cc
 stringtab.cc
 symtab_example.cc
 tree.cc
