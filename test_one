@@ -48,7 +48,7 @@ for input_cl in "$@"; do
   fi
 
   if diff -u --color \
-    --ignore-matching-lines "^(" \
+    --ignore-matching-lines "|" \
     --label actual <(actual "$input_cl") \
     --label expected <(expected "$input_cl"); then
     green PASS
