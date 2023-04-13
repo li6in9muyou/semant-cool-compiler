@@ -50,13 +50,6 @@ typedef Cases_class *Cases;
 	virtual void semant() = 0; \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#include "symtab.h"
-#include <set>
-#include <string>
-class SemantContext;
-class class__class;
-using ClassTable = SymbolTable<Symbol, class__class>;
-
 #define program_EXTRAS                           \
 public:                                          \
 	void dump_with_types(ostream &, int);        \
@@ -67,6 +60,17 @@ public:                                          \
 #define Class__EXTRAS                  \
 	virtual Symbol get_filename() = 0; \
 	virtual void dump_with_types(ostream &, int) = 0;
+
+#include "symtab.h"
+#include <set>
+#include <string>
+class SemantContext;
+class class__class;
+class attr_class;
+class method_class;
+using ClassTable = SymbolTable<Symbol, class__class>;
+using AttributeTable = SymbolTable<Symbol, attr_class>;
+using MethodTable = SymbolTable<Symbol, method_class>;
 
 #define class__EXTRAS                                                                      \
 public:                                                                                    \
