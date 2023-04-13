@@ -66,7 +66,7 @@ void class__class::semant(SemantContext &ctx)
     LOG_SCOPE_FUNCTION(INFO);
     LOG_F(INFO, "class %s semant", name->get_string());
 
-    const auto old_errors = ctx.errors();
+    auto old_errors = ctx.errors();
 
     check_superclass_is_defined(ctx);
     check_superclass_is_not_in_cycle(ctx);
@@ -87,6 +87,7 @@ void class__class::semant(SemantContext &ctx)
     ctx.familyMethodTable->enterscope();
     ctx.familyAttributeTable->enterscope();
 
+    old_errors = ctx.errors();
     for (auto i = features->first(); features->more(i); i = features->next(i))
     {
         features->nth(i)->check_not_redefined_and_register(ctx);
@@ -100,6 +101,7 @@ void class__class::semant(SemantContext &ctx)
         LOG_F(INFO, "feature declaration check pass");
     }
 
+    old_errors = ctx.errors();
     check_Main_has_main(ctx);
     if (old_errors < ctx.errors())
     {
