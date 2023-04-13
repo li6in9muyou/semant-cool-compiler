@@ -104,6 +104,8 @@ void program_class::semant()
 
     LOG_F(INFO, "classTable.enterscope");
     ctx.classTable.enterscope();
+    ctx.programMethodTable.enterscope();
+    ctx.programAttributeTable.enterscope();
 
     LOG_F(INFO, "installed basic classes");
     install_basic_classes(ctx);

@@ -36,8 +36,6 @@ extern Symbol
 using ClassTable = SymbolTable<Symbol, class__class>;
 using AttributeTable = SymbolTable<Symbol, attr_class>;
 using MethodTable = SymbolTable<Symbol, method_class>;
-using ClassMethodTable = SymbolTable<Symbol, MethodTable>;
-using ClassAttributeTable = SymbolTable<Symbol, AttributeTable>;
 
 class SemantContext
 {
@@ -45,12 +43,15 @@ private:
   int semant_errors;
   ostream &error_stream;
   Symbol filename;
-  vector<MethodTable> methodStore;
-  vector<AttributeTable> attributeStore;
-  ClassMethodTable classMethodLookup;
-  ClassAttributeTable classAttributeLookup;
 
 public:
+  // xxxTable owner
+  vector<MethodTable> methodStore;
+  vector<AttributeTable> attributeStore;
+  // mapping: class symbol -> xxxTable
+  SymbolTable<Symbol, MethodTable> programMethodTable;
+  SymbolTable<Symbol, AttributeTable> programAttributeTable;
+
   ClassTable classTable;
   MethodTable *familyMethodTable;
   AttributeTable *familyAttributeTable;
