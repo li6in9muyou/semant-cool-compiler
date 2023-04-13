@@ -81,7 +81,9 @@ private:                                                                        
 	void check_superclass_is_defined(SemantContext &);                                     \
 	void check_superclass_is_not_in_cycle(SemantContext &);                                \
 	void check_superclass_is_not_primitives(SemantContext &);                              \
-	void check_Main_has_main(SemantContext &);
+	void check_Main_has_main(SemantContext &);                                             \
+	AttributeTable* get_family_attribute_table(SemantContext &);                            \
+	MethodTable* get_family_method_table(SemantContext &);
 
 #define Feature_EXTRAS                                \
 public:                                               \
