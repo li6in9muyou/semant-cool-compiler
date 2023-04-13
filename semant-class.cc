@@ -19,6 +19,48 @@ string error_message_superclass_is_primitive(const string &class_name, const str
 string error_message_class_is_redefined(const string &class_name);
 string error_message_no_main_in_Main();
 
+AttributeTable *class__class::get_family_attribute_table(SemantContext &ctx)
+{
+    const auto parentIsObject = Object->equal_string(parent->get_string(), parent->get_len());
+    const auto parentIsIO = IO->equal_string(parent->get_string(), parent->get_len());
+
+    LOG_F(INFO, "parent is %s", parent->get_string());
+    if (parentIsObject || parentIsIO)
+    {
+        auto &attributeTable = ctx.attributeStore.emplace_back();
+        const auto se = ctx.programAttributeTable.addid(name, &attributeTable);
+        LOG_F(INFO, "create new mapping %s -> attributeTable", se->get_id()->get_string());
+        return se->get_info();
+    }
+    else
+    {
+        const auto attributeTable = ctx.programAttributeTable.probe(parent);
+        LOG_IF_F(ERROR, attributeTable == nullptr, "%s has no parent and is not a direct descentant of Object/IO", name->get_string());
+        return attributeTable;
+    }
+}
+
+MethodTable *class__class::get_family_method_table(SemantContext &ctx)
+{
+    const auto parentIsObject = Object->equal_string(parent->get_string(), parent->get_len());
+    const auto parentIsIO = IO->equal_string(parent->get_string(), parent->get_len());
+
+    LOG_F(INFO, "parent is %s", parent->get_string());
+    if (parentIsObject || parentIsIO)
+    {
+        auto &methodTable = ctx.methodStore.emplace_back();
+        const auto se = ctx.programMethodTable.addid(name, &methodTable);
+        LOG_F(INFO, "create new mapping %s -> methodTable", se->get_id()->get_string());
+        return se->get_info();
+    }
+    else
+    {
+        const auto methodTable = ctx.programMethodTable.probe(parent);
+        LOG_IF_F(ERROR, methodTable == nullptr, "%s has no parent and is not a direct descentant of Object/IO", name->get_string());
+        return methodTable;
+    }
+}
+
 void class__class::semant(SemantContext &ctx)
 {
     LOG_F(INFO, "class %s semant", name->get_string());
@@ -38,8 +80,8 @@ void class__class::semant(SemantContext &ctx)
         LOG_F(INFO, "class superclass check pass");
     }
 
-    ctx.familyMethodTable = ctx.get_or_create_family_method_table(name);
-    ctx.familyAttributeTable = ctx.get_or_create_family_attribute_table(name);
+    ctx.familyMethodTable = get_family_method_table(ctx);
+    ctx.familyAttributeTable = get_family_attribute_table(ctx);
 
     ctx.familyMethodTable->enterscope();
     ctx.familyAttributeTable->enterscope();
