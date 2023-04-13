@@ -61,8 +61,6 @@ public:
   ostream &semant_error(tree_node *t);
   ostream &semant_error(Symbol filename, tree_node *t);
   void abort_if_error();
-  MethodTable *get_or_create_family_method_table(Symbol class_symbol);
-  AttributeTable *get_or_create_family_attribute_table(Symbol class_symbol);
 };
 
 #endif
