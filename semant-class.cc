@@ -24,7 +24,6 @@ AttributeTable *class__class::get_family_attribute_table(SemantContext &ctx)
     const auto parentIsObject = Object->equal_string(parent->get_string(), parent->get_len());
     const auto parentIsIO = IO->equal_string(parent->get_string(), parent->get_len());
 
-    LOG_F(INFO, "parent is %s", parent->get_string());
     if (parentIsObject || parentIsIO)
     {
         auto &attributeTable = ctx.attributeStore.emplace_back();
@@ -45,7 +44,6 @@ MethodTable *class__class::get_family_method_table(SemantContext &ctx)
     const auto parentIsObject = Object->equal_string(parent->get_string(), parent->get_len());
     const auto parentIsIO = IO->equal_string(parent->get_string(), parent->get_len());
 
-    LOG_F(INFO, "parent is %s", parent->get_string());
     if (parentIsObject || parentIsIO)
     {
         auto &methodTable = ctx.methodStore.emplace_back();
@@ -65,6 +63,7 @@ void class__class::semant(SemantContext &ctx)
 {
     LOG_SCOPE_FUNCTION(INFO);
     LOG_F(INFO, "class %s semant", name->get_string());
+    LOG_F(INFO, "parent is %s", parent->get_string());
 
     auto old_errors = ctx.errors();
 
