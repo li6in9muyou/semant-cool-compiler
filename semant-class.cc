@@ -24,18 +24,27 @@ AttributeTable *class__class::get_family_attribute_table(SemantContext &ctx)
     const auto parentIsObject = Object->equal_string(parent->get_string(), parent->get_len());
     const auto parentIsIO = IO->equal_string(parent->get_string(), parent->get_len());
 
+    LOG_F(INFO, "%s prepare family attribute table", name->get_string());
     if (parentIsObject || parentIsIO)
     {
         auto &attributeTable = ctx.attributeStore.emplace_back();
+        LOG_F(INFO, "create new %p", &attributeTable);
         const auto se = ctx.programAttributeTable.addid(name, &attributeTable);
-        LOG_F(INFO, "create new mapping %s -> attributeTable", se->get_id()->get_string());
         return se->get_info();
     }
     else
     {
-        const auto attributeTable = ctx.programAttributeTable.probe(parent);
-        LOG_IF_F(ERROR, attributeTable == nullptr, "%s has no parent and is not a direct descentant of Object/IO", name->get_string());
-        return attributeTable;
+        auto attributTable = ctx.programAttributeTable.probe(parent);
+        if (attributTable == nullptr)
+        {
+            LOG_F(INFO, "family attribute table not found");
+            const auto parent_class = ctx.classTable.probe(parent);
+            return parent_class->get_family_attribute_table(ctx);
+        }
+        else
+        {
+            return attributTable;
+        }
     }
 }
 
@@ -44,18 +53,27 @@ MethodTable *class__class::get_family_method_table(SemantContext &ctx)
     const auto parentIsObject = Object->equal_string(parent->get_string(), parent->get_len());
     const auto parentIsIO = IO->equal_string(parent->get_string(), parent->get_len());
 
+    LOG_F(INFO, "%s prepare family method table", name->get_string());
     if (parentIsObject || parentIsIO)
     {
         auto &methodTable = ctx.methodStore.emplace_back();
+        LOG_F(INFO, "create new %p", &methodTable);
         const auto se = ctx.programMethodTable.addid(name, &methodTable);
-        LOG_F(INFO, "create new mapping %s -> methodTable", se->get_id()->get_string());
         return se->get_info();
     }
     else
     {
-        const auto methodTable = ctx.programMethodTable.probe(parent);
-        LOG_IF_F(ERROR, methodTable == nullptr, "%s has no parent and is not a direct descentant of Object/IO", name->get_string());
-        return methodTable;
+        auto methodTable = ctx.programMethodTable.probe(parent);
+        if (methodTable == nullptr)
+        {
+            LOG_F(INFO, "family method table not found");
+            const auto parent_class = ctx.classTable.probe(parent);
+            return parent_class->get_family_method_table(ctx);
+        }
+        else
+        {
+            return methodTable;
+        }
     }
 }
 
@@ -79,12 +97,6 @@ void class__class::semant(SemantContext &ctx)
     {
         LOG_F(INFO, "class superclass check pass");
     }
-
-    ctx.familyMethodTable = get_family_method_table(ctx);
-    ctx.familyAttributeTable = get_family_attribute_table(ctx);
-
-    ctx.familyMethodTable->enterscope();
-    ctx.familyAttributeTable->enterscope();
 
     old_errors = ctx.errors();
     for (auto i = features->first(); features->more(i); i = features->next(i))
@@ -111,7 +123,7 @@ void class__class::semant(SemantContext &ctx)
         LOG_F(INFO, "Main.main check pass");
     }
 
-    LOG_F(INFO, "descending into semant");
+    LOG_F(INFO, "descending into features");
 
     const auto cnt = features->len();
     for (auto i = cnt - 1; i >= 0; i -= 1)
@@ -123,15 +135,21 @@ void class__class::semant(SemantContext &ctx)
 void class__class::check_not_redefined_and_register(SemantContext &ctx)
 {
     LOG_F(INFO, "class %s precheck", name->get_string());
+
+    ctx.familyMethodTable = get_family_method_table(ctx);
+    ctx.familyAttributeTable = get_family_attribute_table(ctx);
+    ctx.familyMethodTable->enterscope();
+    ctx.familyAttributeTable->enterscope();
+
     const auto good = ctx.classTable.probe(name) == nullptr;
     if (good)
     {
-        LOG_F(INFO, "classTable.addid");
+        LOG_F(INFO, "add new class");
         ctx.classTable.addid(name, this);
     }
     else
     {
-        LOG_F(INFO, "error: redefined");
+        LOG_F(INFO, "it is redefined");
         ctx.semant_error(this)
             << error_message_class_is_redefined(name->get_string())
             << "\n";

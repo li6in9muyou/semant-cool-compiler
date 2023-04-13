@@ -13,7 +13,8 @@ void method_class::semant(SemantContext &ctx)
 
 void method_class::check_not_redefined_and_register(SemantContext &ctx)
 {
-    const auto redefined = nullptr != ctx.familyMethodTable->lookup(name);
+    LOG_F(INFO, "method declration check");
+    const auto redefined = nullptr != ctx.familyMethodTable->probe(name);
     if (!redefined)
     {
         ctx.familyMethodTable->addid(name, this);
