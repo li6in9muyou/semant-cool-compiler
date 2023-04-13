@@ -63,6 +63,7 @@ MethodTable *class__class::get_family_method_table(SemantContext &ctx)
 
 void class__class::semant(SemantContext &ctx)
 {
+    LOG_SCOPE_FUNCTION(INFO);
     LOG_F(INFO, "class %s semant", name->get_string());
 
     const auto old_errors = ctx.errors();
