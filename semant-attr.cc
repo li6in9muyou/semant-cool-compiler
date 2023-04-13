@@ -41,7 +41,7 @@ void attr_class::check_no_shadow_attribute_in_superclass(SemantContext &ctx)
 
 void attr_class::semant(SemantContext &ctx)
 {
-    LOG_F(INFO, "attribute semant");
+    LOG_SCOPE_FUNCTION(INFO);
 
     check_type_decl_is_defined(ctx);
     check_no_shadow_attribute_in_superclass(ctx);

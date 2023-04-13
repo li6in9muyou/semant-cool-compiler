@@ -2,11 +2,13 @@
 using std::string;
 
 #include "semant.h"
+#include "loguru.h"
 
 string error_message_method_redefined(const string &method_name);
 
 void method_class::semant(SemantContext &ctx)
 {
+    LOG_SCOPE_FUNCTION(INFO);
 }
 
 void method_class::check_not_redefined_and_register(SemantContext &ctx)
