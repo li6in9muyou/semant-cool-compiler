@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
 
-make -j8 semant
-mylexer "$1" | myparser | ./semant 2>&1
+red() {
+    printf "\033[0;31m%s\033[0m\n" "$1"
+}
+
+if make -j8 semant; then
+    mylexer "$1" | myparser | ./semant 2>&1
+else
+    red "BUILD FAILED"
+fi
