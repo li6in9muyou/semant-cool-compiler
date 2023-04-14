@@ -2,6 +2,8 @@
 #define SEMANT_H_
 #include <vector>
 using std::vector;
+#include <unordered_map>
+using std::unordered_map;
 
 #include "cool-tree.h"
 
@@ -37,6 +39,16 @@ using ClassTable = SymbolTable<Symbol, class__class>;
 using AttributeTable = SymbolTable<Symbol, attr_class>;
 using MethodTable = SymbolTable<Symbol, method_class>;
 
+class FeatureTable
+{
+public:
+  MethodTable methods;
+  AttributeTable attributes;
+  FeatureTable() = default;
+  void enterscope();
+  void exitscope();
+};
+
 class SemantContext
 {
 private:
@@ -45,13 +57,7 @@ private:
   Symbol filename;
 
 public:
-  // xxxTable owner
-  vector<MethodTable> methodStore;
-  vector<AttributeTable> attributeStore;
-  // mapping: class symbol -> xxxTable
-  SymbolTable<Symbol, MethodTable> programMethodTable;
-  SymbolTable<Symbol, AttributeTable> programAttributeTable;
-
+  unordered_map<Symbol, FeatureTable> programFeatureTable;
   ClassTable classTable;
   MethodTable *familyMethodTable;
   AttributeTable *familyAttributeTable;

@@ -53,3 +53,15 @@ ostream &SemantContext::semant_error()
     semant_errors++;
     return error_stream;
 }
+
+void FeatureTable::enterscope()
+{
+    attributes.enterscope();
+    methods.enterscope();
+}
+
+void FeatureTable::exitscope()
+{
+    attributes.exitscope();
+    methods.exitscope();
+}

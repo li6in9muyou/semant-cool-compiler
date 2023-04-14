@@ -8,24 +8,29 @@ string error_message_attribute_redefined(const string &method_name);
 string error_message_attribute_type_is_not_defined(const string &attribute_name, const string type_name);
 string error_message_shadow_attribute_in_superclass(const string &attribute_name);
 
-void attr_class::check_not_redefined_and_register(SemantContext &ctx)
+void attr_class::register_symbol(SemantContext &ctx)
 {
-    LOG_F(INFO, "attribute declration check");
+    LOG_F(INFO, "attribute register symbol at %s", name->get_string());
 
-    const auto before = ctx.errors();
-    check_no_shadow_attribute_in_superclass(ctx);
-    if (ctx.errors() > before)
-    {
-        LOG_F(INFO, "shadow check failed, return");
-        return;
-    }
+    CHECK_NOTNULL_F(ctx.familyAttributeTable, "ctx.familyAttributeTable is nullptr");
     const auto redefined = nullptr != ctx.familyAttributeTable->probe(name);
     if (!redefined)
     {
-        ctx.familyAttributeTable->addid(name, this);
+        const auto before = ctx.errors();
+        check_no_shadow_attribute_in_superclass(ctx);
+        if (before < ctx.errors())
+        {
+            LOG_F(INFO, "shadow check failed, does no add symbol");
+        }
+        else
+        {
+            LOG_F(INFO, "not redefining and not shadowing, add symbol");
+            ctx.familyAttributeTable->addid(name, this);
+        }
     }
     else
     {
+        LOG_F(INFO, "redefinition check failed, add error");
         ctx.semant_error(this)
             << error_message_attribute_redefined(name->get_string())
             << "\n";
@@ -45,8 +50,8 @@ void attr_class::check_type_decl_is_defined(SemantContext &ctx)
 
 void attr_class::check_no_shadow_attribute_in_superclass(SemantContext &ctx)
 {
-    const auto redefined = nullptr != ctx.familyAttributeTable->lookup(name);
-    if (redefined)
+    const auto shadow = nullptr != ctx.familyAttributeTable->lookup(name);
+    if (shadow)
     {
         ctx.semant_error(this)
             << error_message_shadow_attribute_in_superclass(name->get_string())

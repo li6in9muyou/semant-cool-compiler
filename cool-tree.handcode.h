@@ -78,27 +78,27 @@ public:                                                                         
 	Symbol get_name();                                                                     \
 	Symbol get_filename();                                                                 \
 	void semant(SemantContext &);                                                          \
-	void check_not_redefined_and_register(SemantContext &);                                \
+	void register_symbol(SemantContext &);                                                 \
+	void create_family_feature_table(SemantContext &);                                     \
                                                                                            \
 private:                                                                                   \
 	bool check_class_in_loop(ClassTable &, const class__class &, std::set<std::string> &); \
 	void check_superclass_is_defined(SemantContext &);                                     \
 	void check_superclass_is_not_in_cycle(SemantContext &);                                \
 	void check_superclass_is_not_primitives(SemantContext &);                              \
-	void check_Main_has_main(SemantContext &);                                             \
-	AttributeTable* get_family_attribute_table(SemantContext &);                            \
-	MethodTable* get_family_method_table(SemantContext &);
+	void check_Main_has_main(SemantContext &);
 
 #define Feature_EXTRAS                                \
 public:                                               \
-	virtual void semant(SemantContext &) = 0;         \
 	virtual void dump_with_types(ostream &, int) = 0; \
-	virtual void check_not_redefined_and_register(SemantContext &) = 0;
+	virtual void semant(SemantContext &) = 0;         \
+	virtual void register_symbol(SemantContext &) = 0;
 
-#define Feature_SHARED_EXTRAS                                        \
-	void dump_with_types(ostream &, int);                            \
-	void check_not_redefined_and_register(SemantContext &) override; \
-	void semant(SemantContext &) override;
+#define Feature_SHARED_EXTRAS              \
+public:                                    \
+	void dump_with_types(ostream &, int);  \
+	void semant(SemantContext &) override; \
+	void register_symbol(SemantContext &) override;
 
 #define method_EXTRAS \
 private:              \

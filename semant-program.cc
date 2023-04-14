@@ -95,51 +95,55 @@ void program_class::semant()
     loguru::g_preamble_time = false;
     loguru::g_preamble_thread = false;
 
-    LOG_F(INFO, "initialized constant symbols");
     initialize_constants();
+    LOG_F(INFO, "initialized constant symbols at semant phase");
 
+    const auto filename = classes->nth(classes->first())->get_filename();
     SemantContext ctx;
-
-    /* some semantic analysis code may go here */
-
-    LOG_F(INFO, "classTable.enterscope");
-    ctx.classTable.enterscope();
-    ctx.programMethodTable.enterscope();
-    ctx.programAttributeTable.enterscope();
-
-    LOG_F(INFO, "installed basic classes");
-    install_basic_classes(ctx);
-
-    const auto any_class = classes->nth(classes->first());
-    const auto filename = any_class->get_filename();
     ctx.set_filename(filename);
 
-    LOG_F(INFO, "found %d classes in %s", classes->len(), filename->get_string());
-    LOG_F(INFO, "class declaration check");
+    install_basic_classes(ctx);
+    LOG_F(INFO, "installed basic classes at %s", filename->get_string());
 
-    for (auto i = classes->first(); classes->more(i); i = classes->next(i))
+    LOG_F(INFO, "ctx.classTable.enterscope at register user-defined classes");
+    ctx.classTable.enterscope();
     {
-        auto *cls = (class__class *)classes->nth(i);
-        cls->check_not_redefined_and_register(ctx);
+        LOG_SCOPE_F(INFO, "class register symbol at %s", filename->get_string());
+        for (auto i = classes->first(); classes->more(i); i = classes->next(i))
+        {
+            auto *cls = (class__class *)classes->nth(i);
+            cls->register_symbol(ctx);
+        }
+    }
+    {
+        LOG_SCOPE_F(INFO, "class create family feature table at %s", filename->get_string());
+        for (auto i = classes->first(); classes->more(i); i = classes->next(i))
+        {
+            auto *cls = (class__class *)classes->nth(i);
+            LOG_SCOPE_F(INFO, "create family feature table at %s", cls->get_name()->get_string());
+            cls->create_family_feature_table(ctx);
+        }
     }
     ctx.abort_if_error();
-
-    LOG_F(INFO, "class declaration check pass");
+    LOG_F(INFO, "registered class symbols at %s", filename->get_string());
 
     check_Main_is_defined(ctx);
     ctx.abort_if_error();
+    LOG_F(INFO, "Main check passed at %s", filename->get_string());
 
-    LOG_F(INFO, "Main check pass");
-
-    const auto cnt = classes->len();
-    for (auto i = cnt - 1; i >= 0; i -= 1)
     {
-        auto *cls = (class__class *)classes->nth(i);
-        cls->semant(ctx);
+        LOG_SCOPE_F(INFO, "descend into class at %s", filename->get_string());
+        const auto cnt = classes->len();
+        for (auto i = cnt - 1; i >= 0; i -= 1)
+        {
+            auto *cls = (class__class *)classes->nth(i);
+            cls->semant(ctx);
+        }
     }
     ctx.abort_if_error();
 
     ctx.classTable.exitscope();
+    LOG_F(INFO, "semant ended at %s", filename->get_string());
 }
 
 string error_message_Main_is_not_defined()
@@ -258,6 +262,8 @@ void program_class::install_basic_classes(SemantContext &ctx)
                                           no_expr()))),
                filename);
 
+    LOG_F(INFO, "ctx.classTable.enterscope at install basic classes");
+    ctx.classTable.enterscope();
     ctx.classTable.addid(Str, (class__class *)Str_class);
     ctx.classTable.addid(Int, (class__class *)Int_class);
     ctx.classTable.addid(Bool, (class__class *)Bool_class);

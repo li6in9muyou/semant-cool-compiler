@@ -19,100 +19,18 @@ string error_message_superclass_is_primitive(const string &class_name, const str
 string error_message_class_is_redefined(const string &class_name);
 string error_message_no_main_in_Main();
 
-AttributeTable *class__class::get_family_attribute_table(SemantContext &ctx)
-{
-    const auto parentIsObject = Object->equal_string(parent->get_string(), parent->get_len());
-    const auto parentIsIO = IO->equal_string(parent->get_string(), parent->get_len());
-
-    LOG_F(INFO, "%s prepare family attribute table", name->get_string());
-    if (parentIsObject || parentIsIO)
-    {
-        auto &attributeTable = ctx.attributeStore.emplace_back();
-        LOG_F(INFO, "create new %p", &attributeTable);
-        const auto se = ctx.programAttributeTable.addid(name, &attributeTable);
-        return se->get_info();
-    }
-    else
-    {
-        auto attributTable = ctx.programAttributeTable.probe(parent);
-        if (attributTable == nullptr)
-        {
-            LOG_F(INFO, "family attribute table not found");
-            const auto parent_class = ctx.classTable.probe(parent);
-            return parent_class->get_family_attribute_table(ctx);
-        }
-        else
-        {
-            return attributTable;
-        }
-    }
-}
-
-MethodTable *class__class::get_family_method_table(SemantContext &ctx)
-{
-    const auto parentIsObject = Object->equal_string(parent->get_string(), parent->get_len());
-    const auto parentIsIO = IO->equal_string(parent->get_string(), parent->get_len());
-
-    LOG_F(INFO, "%s prepare family method table", name->get_string());
-    if (parentIsObject || parentIsIO)
-    {
-        auto &methodTable = ctx.methodStore.emplace_back();
-        LOG_F(INFO, "create new %p", &methodTable);
-        const auto se = ctx.programMethodTable.addid(name, &methodTable);
-        return se->get_info();
-    }
-    else
-    {
-        auto methodTable = ctx.programMethodTable.probe(parent);
-        if (methodTable == nullptr)
-        {
-            LOG_F(INFO, "family method table not found");
-            const auto parent_class = ctx.classTable.probe(parent);
-            return parent_class->get_family_method_table(ctx);
-        }
-        else
-        {
-            return methodTable;
-        }
-    }
-}
-
 void class__class::semant(SemantContext &ctx)
 {
     LOG_SCOPE_FUNCTION(INFO);
     LOG_F(INFO, "class %s semant", name->get_string());
     LOG_F(INFO, "parent is %s", parent->get_string());
 
+    auto &familyFeatureTable = ctx.programFeatureTable[name];
+    ctx.familyMethodTable = &familyFeatureTable.methods;
+    ctx.familyAttributeTable = &familyFeatureTable.attributes;
+    LOG_F(INFO, "bind family feature table to %p", &familyFeatureTable);
+
     auto old_errors = ctx.errors();
-
-    check_superclass_is_defined(ctx);
-    check_superclass_is_not_in_cycle(ctx);
-    check_superclass_is_not_primitives(ctx);
-    if (old_errors < ctx.errors())
-    {
-        LOG_F(INFO, "found errors in superclass check, return");
-        return;
-    }
-    else
-    {
-        LOG_F(INFO, "class superclass check pass");
-    }
-
-    old_errors = ctx.errors();
-    for (auto i = features->first(); features->more(i); i = features->next(i))
-    {
-        features->nth(i)->check_not_redefined_and_register(ctx);
-    }
-    if (old_errors < ctx.errors())
-    {
-        LOG_F(INFO, "found errors in feature declaration check, return");
-    }
-    else
-    {
-        LOG_F(INFO, "feature declaration check pass");
-    }
-
-    old_errors = ctx.errors();
     check_Main_has_main(ctx);
     if (old_errors < ctx.errors())
     {
@@ -132,15 +50,100 @@ void class__class::semant(SemantContext &ctx)
     }
 }
 
-void class__class::check_not_redefined_and_register(SemantContext &ctx)
+void class__class::create_family_feature_table(SemantContext &ctx)
 {
-    LOG_F(INFO, "class %s precheck", name->get_string());
+    LOG_F(INFO, "create family feature table at %s", name->get_string());
+    const auto alreadyCreated = ctx.programFeatureTable.find(name) != ctx.programFeatureTable.end();
+    if (alreadyCreated)
+    {
+        LOG_F(INFO, "created by recursion started by derived class, return");
+        return;
+    }
 
-    ctx.familyMethodTable = get_family_method_table(ctx);
-    ctx.familyAttributeTable = get_family_attribute_table(ctx);
-    ctx.familyMethodTable->enterscope();
-    ctx.familyAttributeTable->enterscope();
+    auto old_errors = ctx.errors();
+    check_superclass_is_defined(ctx);
+    check_superclass_is_not_in_cycle(ctx);
+    check_superclass_is_not_primitives(ctx);
+    if (old_errors < ctx.errors())
+    {
+        LOG_F(INFO, "found errors in class family hierarchy check, create an empty feature table");
+        ctx.programFeatureTable.emplace(name, FeatureTable());
+        return;
+    }
+    else
+    {
+        LOG_F(INFO, "class family hierarchy check pass");
+    }
 
+    const auto found = ctx.programFeatureTable.find(parent) != ctx.programFeatureTable.end();
+    if (!found)
+    {
+        LOG_F(INFO, "parent's feature table is not found");
+        auto *parent_class = ctx.classTable.lookup(parent);
+        const auto parentIsObject = parent_class->name->equal_string(Object->get_string(), Object->get_len());
+        if (parentIsObject)
+        {
+            LOG_F(INFO, "parent is Object, create symbol tables and register Object symbols");
+            auto &familyFeatureTable = ctx.programFeatureTable[name];
+            LOG_F(INFO, "create family feature table address %p for %s", &familyFeatureTable, name->get_string());
+            familyFeatureTable.enterscope();
+            ctx.familyMethodTable = &familyFeatureTable.methods;
+            ctx.familyAttributeTable = &familyFeatureTable.attributes;
+            auto *feats = parent_class->features;
+            for (auto i = feats->first(); feats->more(i); i = feats->next(i))
+            {
+                auto *feat = feats->nth(i);
+                feat->register_symbol(ctx);
+            }
+
+            LOG_F(INFO, "register my symbols at %s", name->get_string());
+            familyFeatureTable.enterscope();
+            ctx.familyMethodTable = &familyFeatureTable.methods;
+            ctx.familyAttributeTable = &familyFeatureTable.attributes;
+            for (auto i = features->first(); features->more(i); i = features->next(i))
+            {
+                auto *feat = features->nth(i);
+                feat->register_symbol(ctx);
+            }
+        }
+        else
+        {
+            LOG_F(INFO, "parent is user-defined class, recurse");
+            parent_class->create_family_feature_table(ctx);
+            LOG_F(INFO, "recursion returns, share parent's feature table");
+            ctx.programFeatureTable[name] = ctx.programFeatureTable[parent];
+
+            auto &familyFeatureTable = ctx.programFeatureTable[name];
+            LOG_F(INFO, "register my symbols into %p at %s", &familyFeatureTable, name->get_string());
+            familyFeatureTable.enterscope();
+            ctx.familyMethodTable = &familyFeatureTable.methods;
+            ctx.familyAttributeTable = &familyFeatureTable.attributes;
+            for (auto i = features->first(); features->more(i); i = features->next(i))
+            {
+                auto *feat = features->nth(i);
+                feat->register_symbol(ctx);
+            }
+        }
+    }
+    else
+    {
+        LOG_F(INFO, "parent's feature table is found");
+        LOG_F(INFO, "register my symbols at %s", name->get_string());
+        auto &familyFeatureTable = ctx.programFeatureTable[parent];
+        familyFeatureTable.enterscope();
+        ctx.familyMethodTable = &familyFeatureTable.methods;
+        ctx.familyAttributeTable = &familyFeatureTable.attributes;
+        for (auto i = features->first(); features->more(i); i = features->next(i))
+        {
+            auto *feat = features->nth(i);
+            feat->register_symbol(ctx);
+        }
+    }
+}
+
+void class__class::register_symbol(SemantContext &ctx)
+{
+    LOG_F(INFO, "register symbol at %s", name->get_string());
     const auto good = ctx.classTable.probe(name) == nullptr;
     if (good)
     {
@@ -158,7 +161,7 @@ void class__class::check_not_redefined_and_register(SemantContext &ctx)
 
 void class__class::check_superclass_is_defined(SemantContext &ctx)
 {
-    const auto bad = ctx.classTable.probe(parent) == nullptr;
+    const auto bad = ctx.classTable.lookup(parent) == nullptr;
     if (bad)
     {
         ctx.semant_error(this) << error_message_superclass_is_not_defined(
