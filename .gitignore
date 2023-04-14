@@ -21,4 +21,6 @@ symtab_example.cc
 tree.cc
 utilities.cc
 .idea
-.vscode/settings.json
+.vscode
+.vscode/
+.vscode/**
