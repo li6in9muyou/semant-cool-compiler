@@ -54,89 +54,64 @@ void class__class::create_family_feature_table(SemantContext &ctx)
 {
     LOG_F(INFO, "create family feature table at %s", name->get_string());
     const auto alreadyCreated = ctx.programFeatureTable.find(name) != ctx.programFeatureTable.end();
+    const auto foundFamilyFeatureTable = ctx.programFeatureTable.find(parent) != ctx.programFeatureTable.end();
+    const auto parentIsNoClass = parent->equal_string(No_class->get_string(), No_class->get_len());
+
     if (alreadyCreated)
     {
         LOG_F(INFO, "created by recursion started by derived class, return");
         return;
     }
+    if (parentIsNoClass || foundFamilyFeatureTable)
+    {
+        FeatureTable *familyFeatureTable;
+        if (parentIsNoClass)
+        {
+            LOG_F(INFO, "parent is No_class");
+            familyFeatureTable = &ctx.programFeatureTable[name];
+        }
+        if (foundFamilyFeatureTable)
+        {
+            LOG_F(INFO, "family feature table is found, inherits it");
+            ctx.programFeatureTable[name] = ctx.programFeatureTable[parent];
+            familyFeatureTable = &ctx.programFeatureTable[name];
+        }
+        LOG_F(INFO, "register my features in %p at %s", familyFeatureTable, name->get_string());
+        familyFeatureTable->enterscope();
+        ctx.familyMethodTable = &familyFeatureTable->methods;
+        ctx.familyAttributeTable = &familyFeatureTable->attributes;
+        for (auto i = features->first(); features->more(i); i = features->next(i))
+        {
+            features->nth(i)->register_symbol(ctx);
+        }
 
+        return;
+    }
+
+    LOG_F(INFO, "family feature table not found, check family hierarchy");
     auto old_errors = ctx.errors();
     check_superclass_is_defined(ctx);
     check_superclass_is_not_in_cycle(ctx);
     check_superclass_is_not_primitives(ctx);
     if (old_errors < ctx.errors())
     {
-        LOG_F(INFO, "found errors in class family hierarchy check, create an empty feature table");
-        ctx.programFeatureTable.emplace(name, FeatureTable());
+        LOG_F(INFO, "found errors in class family hierarchy check, return");
         return;
     }
     else
     {
         LOG_F(INFO, "class family hierarchy check pass");
-    }
-
-    const auto found = ctx.programFeatureTable.find(parent) != ctx.programFeatureTable.end();
-    if (!found)
-    {
-        LOG_F(INFO, "parent's feature table is not found");
         auto *parent_class = ctx.classTable.lookup(parent);
-        const auto parentIsObject = parent_class->name->equal_string(Object->get_string(), Object->get_len());
-        if (parentIsObject)
+        auto old_errors = ctx.errors();
+        parent_class->create_family_feature_table(ctx);
+        if (old_errors < ctx.errors())
         {
-            LOG_F(INFO, "parent is Object, create symbol tables and register Object symbols");
-            auto &familyFeatureTable = ctx.programFeatureTable[name];
-            LOG_F(INFO, "create family feature table address %p for %s", &familyFeatureTable, name->get_string());
-            familyFeatureTable.enterscope();
-            ctx.familyMethodTable = &familyFeatureTable.methods;
-            ctx.familyAttributeTable = &familyFeatureTable.attributes;
-            auto *feats = parent_class->features;
-            for (auto i = feats->first(); feats->more(i); i = feats->next(i))
-            {
-                auto *feat = feats->nth(i);
-                feat->register_symbol(ctx);
-            }
-
-            LOG_F(INFO, "register my symbols at %s", name->get_string());
-            familyFeatureTable.enterscope();
-            ctx.familyMethodTable = &familyFeatureTable.methods;
-            ctx.familyAttributeTable = &familyFeatureTable.attributes;
-            for (auto i = features->first(); features->more(i); i = features->next(i))
-            {
-                auto *feat = features->nth(i);
-                feat->register_symbol(ctx);
-            }
+            LOG_F(INFO, "found errors in parent feature table creation, return");
+            return;
         }
         else
         {
-            LOG_F(INFO, "parent is user-defined class, recurse");
-            parent_class->create_family_feature_table(ctx);
-            LOG_F(INFO, "recursion returns, share parent's feature table");
-            ctx.programFeatureTable[name] = ctx.programFeatureTable[parent];
-
-            auto &familyFeatureTable = ctx.programFeatureTable[name];
-            LOG_F(INFO, "register my symbols into %p at %s", &familyFeatureTable, name->get_string());
-            familyFeatureTable.enterscope();
-            ctx.familyMethodTable = &familyFeatureTable.methods;
-            ctx.familyAttributeTable = &familyFeatureTable.attributes;
-            for (auto i = features->first(); features->more(i); i = features->next(i))
-            {
-                auto *feat = features->nth(i);
-                feat->register_symbol(ctx);
-            }
-        }
-    }
-    else
-    {
-        LOG_F(INFO, "parent's feature table is found");
-        LOG_F(INFO, "register my symbols at %s", name->get_string());
-        auto &familyFeatureTable = ctx.programFeatureTable[parent];
-        familyFeatureTable.enterscope();
-        ctx.familyMethodTable = &familyFeatureTable.methods;
-        ctx.familyAttributeTable = &familyFeatureTable.attributes;
-        for (auto i = features->first(); features->more(i); i = features->next(i))
-        {
-            auto *feat = features->nth(i);
-            feat->register_symbol(ctx);
+            return this->create_family_feature_table(ctx);
         }
     }
 }
