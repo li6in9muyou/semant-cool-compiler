@@ -38,8 +38,8 @@ extern Symbol
 class FeatureTable
 {
 public:
-  MethodTable methods;
-  AttributeTable attributes;
+  SymbolTable<Symbol, method_class> methods;
+  SymbolTable<Symbol, attr_class> attributes;
   FeatureTable() = default;
   void enterscope();
   void exitscope();

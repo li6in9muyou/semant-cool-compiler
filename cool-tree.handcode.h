@@ -66,26 +66,21 @@ public:                                          \
 #include <string>
 class SemantContext;
 class class__class;
-class attr_class;
-class method_class;
-using ClassTable = SymbolTable<Symbol, class__class>;
-using AttributeTable = SymbolTable<Symbol, attr_class>;
-using MethodTable = SymbolTable<Symbol, method_class>;
 
-#define class__EXTRAS                                                                      \
-public:                                                                                    \
-	void dump_with_types(ostream &, int);                                                  \
-	Symbol get_name();                                                                     \
-	Symbol get_filename();                                                                 \
-	void semant(SemantContext &);                                                          \
-	void register_symbol(SemantContext &);                                                 \
-	void create_family_feature_table(SemantContext &);                                     \
-                                                                                           \
-private:                                                                                   \
-	bool check_class_in_loop(ClassTable &, const class__class &, std::set<std::string> &); \
-	void check_superclass_is_defined(SemantContext &);                                     \
-	void check_superclass_is_not_in_cycle(SemantContext &);                                \
-	void check_superclass_is_not_primitives(SemantContext &);                              \
+#define class__EXTRAS                                                                                             \
+public:                                                                                                           \
+	void dump_with_types(ostream &, int);                                                                         \
+	Symbol get_name();                                                                                            \
+	Symbol get_filename();                                                                                        \
+	void semant(SemantContext &);                                                                                 \
+	void register_symbol(SemantContext &);                                                                        \
+	void create_family_feature_table(SemantContext &);                                                            \
+                                                                                                                  \
+private:                                                                                                          \
+	bool check_class_in_loop(SymbolTable<Symbol, class__class> &, const class__class &, std::set<std::string> &); \
+	void check_superclass_is_defined(SemantContext &);                                                            \
+	void check_superclass_is_not_in_cycle(SemantContext &);                                                       \
+	void check_superclass_is_not_primitives(SemantContext &);                                                     \
 	void check_Main_has_main(SemantContext &);
 
 #define Feature_EXTRAS                                \

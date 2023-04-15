@@ -152,7 +152,7 @@ bool contains(const string &needle, const std::set<string> &haystack)
 }
 
 bool class__class::check_class_in_loop(
-    ClassTable &classTable,
+    SymbolTable<Symbol, class__class> &classTable,
     const class__class &me,
     std::set<string> &mark)
 {
