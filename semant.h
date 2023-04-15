@@ -35,10 +35,6 @@ extern Symbol
     type_name,
     val;
 
-using ClassTable = SymbolTable<Symbol, class__class>;
-using AttributeTable = SymbolTable<Symbol, attr_class>;
-using MethodTable = SymbolTable<Symbol, method_class>;
-
 class FeatureTable
 {
 public:
@@ -58,9 +54,9 @@ private:
 
 public:
   unordered_map<Symbol, FeatureTable> programFeatureTable;
-  ClassTable classTable;
-  MethodTable *familyMethodTable;
-  AttributeTable *familyAttributeTable;
+  SymbolTable<Symbol, class__class> classTable;
+  SymbolTable<Symbol, method_class> *familyMethodTable;
+  SymbolTable<Symbol, attr_class> *familyAttributeTable;
   SemantContext();
   void set_filename(Symbol filename);
   int errors() { return semant_errors; }
