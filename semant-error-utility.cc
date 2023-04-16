@@ -34,6 +34,26 @@ namespace semant_errors
          {
              return "No 'main' method in class Main.";
          }},
+        {ErrorType::SuperclassIsNotDefined,
+         [](const unordered_map<K, string> &ctx)
+         {
+             return "Class " + ctx.at(K::className) + " inherits from an undefined class " + ctx.at(K::parentName) + ".";
+         }},
+        {ErrorType::SuperclassIsInCycle,
+         [](const unordered_map<K, string> &ctx)
+         {
+             return "Class " + ctx.at(K::className) + ", or an ancestor of " + ctx.at(K::className) + ", is involved in an inheritance cycle.";
+         }},
+        {ErrorType::SuperclassIsPrimitive,
+         [](const unordered_map<K, string> &ctx)
+         {
+             return "Class " + ctx.at(K::className) + " cannot inherit class " + ctx.at(K::parentName) + ".";
+         }},
+        {ErrorType::ClassIsRedefined,
+         [](const unordered_map<K, string> &ctx)
+         {
+             return "Class " + ctx.at(K::className) + " was previously defined.";
+         }},
     };
 
     bool report_errors(ErrorType type, const unordered_map<K, string> &ctx)

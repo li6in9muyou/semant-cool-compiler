@@ -21,8 +21,9 @@ namespace semant_errors
         SuperclassIsInCycle,
         SuperclassIsNotDefined,
         SuperclassIsPrimitive,
-        // method
-        MethodRedefined,
+        ClassIsRedefined,
+            // method
+            MethodRedefined,
         // attribute
         AttributeRedefined,
         AttributeTypeIsNotDefined,
@@ -35,6 +36,8 @@ namespace semant_errors
         attributeName,
         typeName,
         lineNumber,
+        className,
+        parentName,
     };
 
     using RenderFunction = function<string(const unordered_map<K, string> &)>;

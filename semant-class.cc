@@ -18,11 +18,6 @@ using semant_errors::ErrorType;
 using semant_errors::K;
 using semant_errors::report_errors;
 
-string error_message_superclass_is_in_cycle(const string &class_name);
-string error_message_superclass_is_not_defined(const string &class_name, const string &parent_name);
-string error_message_superclass_is_primitive(const string &class_name, const string &parent_name);
-string error_message_class_is_redefined(const string &class_name);
-
 bool class__class::semant(SemantContext &ctx)
 {
     LOG_SCOPE_FUNCTION(INFO);
@@ -112,29 +107,41 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
     }
 
     LOG_F(INFO, "family feature table not found, check family hierarchy");
-    auto old_errors = ctx.errors();
-    check_superclass_is_defined(ctx);
-    check_superclass_is_not_in_cycle(ctx);
-    check_superclass_is_not_primitives(ctx);
-    if (old_errors < ctx.errors())
+    if (!check_superclass_is_defined(ctx))
     {
-        LOG_F(INFO, "found errors in class family hierarchy check, return");
+        report_errors(ErrorType::SuperclassIsNotDefined,
+                      {{K::className, name->get_string()},
+                       {K::parentName, parent->get_string()},
+                       {K::lineNumber, to_string(line_number)}});
+        return false;
+    }
+    if (!check_superclass_is_not_in_cycle(ctx))
+    {
+        report_errors(ErrorType::SuperclassIsInCycle,
+                      {{K::className, name->get_string()},
+                       {K::lineNumber, to_string(line_number)}});
+        return false;
+    }
+    if (!check_superclass_is_not_primitives(ctx))
+    {
+        report_errors(ErrorType::SuperclassIsPrimitive,
+                      {{K::className, name->get_string()},
+                       {K::parentName, parent->get_string()},
+                       {K::lineNumber, to_string(line_number)}});
+        return false;
+    }
+
+    LOG_F(INFO, "class family hierarchy check pass");
+    auto *parent_class = ctx.classTable.lookup(parent);
+    const auto ok = parent_class->create_family_feature_table(ctx);
+    if (!ok)
+    {
+        LOG_F(INFO, "found errors in parent feature table creation, return");
         return false;
     }
     else
     {
-        LOG_F(INFO, "class family hierarchy check pass");
-        auto *parent_class = ctx.classTable.lookup(parent);
-        const auto ok = parent_class->create_family_feature_table(ctx);
-        if (!ok)
-        {
-            LOG_F(INFO, "found errors in parent feature table creation, return");
-            return false;
-        }
-        else
-        {
-            return this->create_family_feature_table(ctx);
-        }
+        return this->create_family_feature_table(ctx);
     }
 }
 
@@ -151,23 +158,17 @@ bool class__class::register_symbol(SemantContext &ctx)
     else
     {
         LOG_F(INFO, "it is redefined");
-        ctx.semant_error(this)
-            << error_message_class_is_redefined(name->get_string())
-            << "\n";
+        report_errors(ErrorType::ClassIsRedefined,
+                      {{K::className, name->get_string()},
+                       {K::lineNumber, to_string(line_number)}});
         return false;
     }
 }
 
-void class__class::check_superclass_is_defined(SemantContext &ctx)
+bool class__class::check_superclass_is_defined(SemantContext &ctx)
 {
     const auto bad = ctx.classTable.lookup(parent) == nullptr;
-    if (bad)
-    {
-        ctx.semant_error(this) << error_message_superclass_is_not_defined(
-                                      name->get_string(),
-                                      parent->get_string())
-                               << "\n";
-    }
+    return !bad;
 }
 
 bool contains(const string &needle, const std::set<string> &haystack)
@@ -204,25 +205,20 @@ bool class__class::check_class_in_loop(
     return ans;
 }
 
-void class__class::check_superclass_is_not_in_cycle(SemantContext &ctx)
+bool class__class::check_superclass_is_not_in_cycle(SemantContext &ctx)
 {
     std::set<string> mark;
 
     const auto my_parent = ctx.classTable.probe(parent);
     if (my_parent == nullptr)
     {
-        return;
+        return true;
     }
     const auto bad = check_class_in_loop(ctx.classTable, *my_parent, mark);
-    if (bad)
-    {
-        ctx.semant_error(this)
-            << error_message_superclass_is_in_cycle(this->name->get_string())
-            << "\n";
-    }
+    return !bad;
 }
 
-void class__class::check_superclass_is_not_primitives(SemantContext &ctx)
+bool class__class::check_superclass_is_not_primitives(SemantContext &ctx)
 {
     auto bad = false;
 
@@ -239,13 +235,7 @@ void class__class::check_superclass_is_not_primitives(SemantContext &ctx)
         bad = true;
     }
 
-    if (bad)
-    {
-        ctx.semant_error(this) << error_message_superclass_is_primitive(
-                                      name->get_string(),
-                                      parent->get_string())
-                               << "\n";
-    }
+    return !bad;
 }
 
 bool class__class::check_Main_has_main(SemantContext &ctx)
@@ -266,24 +256,4 @@ Symbol class__class::get_filename()
 Symbol class__class::get_name()
 {
     return name;
-}
-
-string error_message_superclass_is_in_cycle(const string &class_name)
-{
-    return "Class " + class_name + ", or an ancestor of " + class_name + ", is involved in an inheritance cycle.";
-}
-
-string error_message_superclass_is_not_defined(const string &class_name, const string &parent_name)
-{
-    return "Class " + class_name + " inherits from an undefined class " + parent_name + ".";
-}
-
-string error_message_superclass_is_primitive(const string &class_name, const string &parent_name)
-{
-    return "Class " + class_name + " cannot inherit class " + parent_name + ".";
-}
-
-string error_message_class_is_redefined(const string &class_name)
-{
-    return "Class " + class_name + " was previously defined.";
 }
