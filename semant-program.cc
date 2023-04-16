@@ -4,6 +4,7 @@ using std::string;
 
 #include "semant.h"
 #include "loguru.h"
+#include "semant-error-utility.h"
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -100,6 +101,7 @@ void program_class::semant()
 
     const auto filename = classes->nth(classes->first())->get_filename();
     SemantContext ctx;
+    semant_errors::env::FileName = filename->get_string();
     ctx.set_filename(filename);
 
     install_basic_classes(ctx);
