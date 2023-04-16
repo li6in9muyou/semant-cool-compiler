@@ -50,7 +50,7 @@ void class__class::semant(SemantContext &ctx)
     }
 }
 
-void class__class::create_family_feature_table(SemantContext &ctx)
+bool class__class::create_family_feature_table(SemantContext &ctx)
 {
     LOG_F(INFO, "create family feature table at %s", name->get_string());
     const auto alreadyCreated = ctx.programFeatureTable.find(name) != ctx.programFeatureTable.end();
@@ -60,7 +60,7 @@ void class__class::create_family_feature_table(SemantContext &ctx)
     if (alreadyCreated)
     {
         LOG_F(INFO, "created by recursion started by derived class, return");
-        return;
+        return true;
     }
     if (parentIsNoClass || foundFamilyFeatureTable)
     {
@@ -76,16 +76,17 @@ void class__class::create_family_feature_table(SemantContext &ctx)
             ctx.programFeatureTable[name] = ctx.programFeatureTable[parent];
             familyFeatureTable = &ctx.programFeatureTable[name];
         }
+
         LOG_F(INFO, "register my features in %p at %s", familyFeatureTable, name->get_string());
         familyFeatureTable->enterscope();
         ctx.familyMethodTable = &familyFeatureTable->methods;
         ctx.familyAttributeTable = &familyFeatureTable->attributes;
+        auto ok = true;
         for (auto i = features->first(); features->more(i); i = features->next(i))
         {
-            features->nth(i)->register_symbol(ctx);
+            ok &= features->nth(i)->register_symbol(ctx);
         }
-
-        return;
+        return ok;
     }
 
     LOG_F(INFO, "family feature table not found, check family hierarchy");
@@ -96,7 +97,7 @@ void class__class::create_family_feature_table(SemantContext &ctx)
     if (old_errors < ctx.errors())
     {
         LOG_F(INFO, "found errors in class family hierarchy check, return");
-        return;
+        return false;
     }
     else
     {
@@ -107,7 +108,7 @@ void class__class::create_family_feature_table(SemantContext &ctx)
         if (old_errors < ctx.errors())
         {
             LOG_F(INFO, "found errors in parent feature table creation, return");
-            return;
+            return false;
         }
         else
         {
@@ -116,14 +117,15 @@ void class__class::create_family_feature_table(SemantContext &ctx)
     }
 }
 
-void class__class::register_symbol(SemantContext &ctx)
+bool class__class::register_symbol(SemantContext &ctx)
 {
     LOG_F(INFO, "register symbol at %s", name->get_string());
-    const auto good = ctx.classTable.probe(name) == nullptr;
-    if (good)
+    const auto ok = ctx.classTable.probe(name) == nullptr;
+    if (ok)
     {
         LOG_F(INFO, "add new class");
         ctx.classTable.addid(name, this);
+        return true;
     }
     else
     {
@@ -131,6 +133,7 @@ void class__class::register_symbol(SemantContext &ctx)
         ctx.semant_error(this)
             << error_message_class_is_redefined(name->get_string())
             << "\n";
+        return false;
     }
 }
 

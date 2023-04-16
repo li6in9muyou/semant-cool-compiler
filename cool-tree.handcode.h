@@ -73,8 +73,8 @@ public:                                                                         
 	Symbol get_name();                                                                                            \
 	Symbol get_filename();                                                                                        \
 	void semant(SemantContext &);                                                                                 \
-	void register_symbol(SemantContext &);                                                                        \
-	void create_family_feature_table(SemantContext &);                                                            \
+	bool register_symbol(SemantContext &);                                                                        \
+	bool create_family_feature_table(SemantContext &);                                                            \
                                                                                                                   \
 private:                                                                                                          \
 	bool check_class_in_loop(SymbolTable<Symbol, class__class> &, const class__class &, std::set<std::string> &); \
@@ -87,22 +87,22 @@ private:                                                                        
 public:                                               \
 	virtual void dump_with_types(ostream &, int) = 0; \
 	virtual void semant(SemantContext &) = 0;         \
-	virtual void register_symbol(SemantContext &) = 0;
+	virtual bool register_symbol(SemantContext &) = 0;
 
 #define Feature_SHARED_EXTRAS              \
 public:                                    \
 	void dump_with_types(ostream &, int);  \
 	void semant(SemantContext &) override; \
-	void register_symbol(SemantContext &) override;
+	bool register_symbol(SemantContext &) override;
 
 #define method_EXTRAS \
 private:              \
-	void check_return_type_is_defined(SemantContext &);
+	bool check_return_type_is_defined(SemantContext &);
 
 #define attr_EXTRAS                                                \
 private:                                                           \
-	void check_no_shadow_attribute_in_superclass(SemantContext &); \
-	void check_type_decl_is_defined(SemantContext &);
+	bool check_no_shadow_attribute_in_superclass(SemantContext &); \
+	bool check_type_decl_is_defined(SemantContext &);
 
 #define Formal_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;

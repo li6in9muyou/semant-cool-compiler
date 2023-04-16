@@ -1,5 +1,8 @@
 #include "loguru.h"
 #include "semant-error-utility.h"
+#include <string>
+using std::cerr;
+using std::endl;
 
 namespace semant_errors
 {
@@ -14,7 +17,7 @@ namespace semant_errors
         {ErrorType::AttributeRedefined,
          [](const unordered_map<K, string> &ctx)
          {
-             return "Attribute " + ctx.at(K::methodName) + " is multiply defined in class.";
+             return "Attribute " + ctx.at(K::attributeName) + " is multiply defined in class.";
          }},
         {ErrorType::AttributeTypeIsNotDefined,
          [](const unordered_map<K, string> &ctx)
@@ -34,7 +37,7 @@ namespace semant_errors
         CHECK_GT_F(env::FileName.size(), 0, "fileName is not initilized");
         const auto lineNumber = ctx.at(K::lineNumber);
 
-        const auto text = env::FileName + ":" + lineNumber + ":" + handlers.at(type)(ctx);
+        const auto text = env::FileName + ":" + lineNumber + ": " + handlers.at(type)(ctx);
         const auto notYetPrinted = printedMessages.end() == printedMessages.find(text);
         if (notYetPrinted)
         {
@@ -45,6 +48,15 @@ namespace semant_errors
         else
         {
             return false;
+        }
+    }
+
+    void abort_if_errors(bool ok)
+    {
+        if (!ok)
+        {
+            cerr << "Compilation halted due to static semantic errors." << endl;
+            exit(1);
         }
     }
 }

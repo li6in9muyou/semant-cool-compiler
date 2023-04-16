@@ -5,6 +5,7 @@ using std::string;
 #include "semant.h"
 #include "loguru.h"
 #include "semant-error-utility.h"
+using semant_errors::abort_if_errors;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -109,12 +110,13 @@ void program_class::semant()
 
     LOG_F(INFO, "ctx.classTable.enterscope at register user-defined classes");
     ctx.classTable.enterscope();
+    auto ok = true;
     {
         LOG_SCOPE_F(INFO, "class register symbol at %s", filename->get_string());
         for (auto i = classes->first(); classes->more(i); i = classes->next(i))
         {
             auto *cls = (class__class *)classes->nth(i);
-            cls->register_symbol(ctx);
+            ok &= cls->register_symbol(ctx);
         }
     }
     {
@@ -123,10 +125,10 @@ void program_class::semant()
         {
             auto *cls = (class__class *)classes->nth(i);
             LOG_SCOPE_F(INFO, "create family feature table at %s", cls->get_name()->get_string());
-            cls->create_family_feature_table(ctx);
+            ok &= cls->create_family_feature_table(ctx);
         }
     }
-    ctx.abort_if_error();
+    abort_if_errors(ok);
     LOG_F(INFO, "registered class symbols at %s", filename->get_string());
 
     check_Main_is_defined(ctx);

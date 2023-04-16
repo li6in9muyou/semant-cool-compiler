@@ -7,11 +7,9 @@
 
 namespace semant_errors
 {
-    using std::cerr;
+
     using std::function;
-    using std::ostream;
     using std::string;
-    using std::stringstream;
     using std::unordered_map;
     using std::unordered_set;
 
@@ -43,6 +41,7 @@ namespace semant_errors
     extern const unordered_map<ErrorType, RenderFunction> handlers;
     static unordered_set<string> printedMessages;
     bool report_errors(ErrorType type, const unordered_map<K, string> &ctx);
+    void abort_if_errors(bool ok);
 }
 
 namespace semant_errors::env
