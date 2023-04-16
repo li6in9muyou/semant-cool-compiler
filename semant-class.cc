@@ -1,25 +1,29 @@
 #include <symtab.h>
 #include <string>
-#include <set>
-#include <map>
-#include <algorithm>
-#include <array>
-using std::map;
-using std::set;
 using std::string;
+using std::to_string;
+#include <set>
+using std::set;
+#include <map>
+using std::map;
+#include <algorithm>
+using std::all_of;
 
 #include "semant.h"
 #include "cool-tree.h"
 #include "list.h"
 #include "loguru.h"
+#include "semant-error-utility.h"
+using semant_errors::ErrorType;
+using semant_errors::K;
+using semant_errors::report_errors;
 
 string error_message_superclass_is_in_cycle(const string &class_name);
 string error_message_superclass_is_not_defined(const string &class_name, const string &parent_name);
 string error_message_superclass_is_primitive(const string &class_name, const string &parent_name);
 string error_message_class_is_redefined(const string &class_name);
-string error_message_no_main_in_Main();
 
-void class__class::semant(SemantContext &ctx)
+bool class__class::semant(SemantContext &ctx)
 {
     LOG_SCOPE_FUNCTION(INFO);
     LOG_F(INFO, "class %s semant", name->get_string());
@@ -30,8 +34,17 @@ void class__class::semant(SemantContext &ctx)
     ctx.familyAttributeTable = &familyFeatureTable.attributes;
     LOG_F(INFO, "bind family feature table to %p", &familyFeatureTable);
 
+    {
+        LOG_SCOPE_F(INFO, "check Main class has main method");
+        const auto ok = check_Main_has_main(ctx);
+        if (!ok)
+        {
+            report_errors(ErrorType::NoMainInClassMain,
+                          {{K::methodName, name->get_string()},
+                           {K::lineNumber, to_string(line_number)}});
+        }
+    }
     auto old_errors = ctx.errors();
-    check_Main_has_main(ctx);
     if (old_errors < ctx.errors())
     {
         LOG_F(INFO, "found errors in Main.main check, return");
@@ -43,11 +56,15 @@ void class__class::semant(SemantContext &ctx)
 
     LOG_F(INFO, "descending into features");
 
+    vector<bool> results;
     const auto cnt = features->len();
     for (auto i = cnt - 1; i >= 0; i -= 1)
     {
-        features->nth(i)->semant(ctx);
+        const auto ok = features->nth(i)->semant(ctx);
+        results.emplace_back(ok);
     }
+    return all_of(results.cbegin(), results.cend(), [](bool ok)
+                  { return ok; });
 }
 
 bool class__class::create_family_feature_table(SemantContext &ctx)
@@ -77,16 +94,21 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
             familyFeatureTable = &ctx.programFeatureTable[name];
         }
 
-        LOG_F(INFO, "register my features in %p at %s", familyFeatureTable, name->get_string());
-        familyFeatureTable->enterscope();
-        ctx.familyMethodTable = &familyFeatureTable->methods;
-        ctx.familyAttributeTable = &familyFeatureTable->attributes;
-        auto ok = true;
-        for (auto i = features->first(); features->more(i); i = features->next(i))
         {
-            ok &= features->nth(i)->register_symbol(ctx);
+            LOG_SCOPE_F(INFO, "register my features in %p at %s", familyFeatureTable, name->get_string());
+            familyFeatureTable->enterscope();
+            ctx.familyMethodTable = &familyFeatureTable->methods;
+            ctx.familyAttributeTable = &familyFeatureTable->attributes;
+
+            vector<bool> results;
+            for (auto i = features->first(); features->more(i); i = features->next(i))
+            {
+                LOG_F(INFO, "work on feature no.%d", i);
+                results.emplace_back(features->nth(i)->register_symbol(ctx));
+            }
+            return all_of(results.cbegin(), results.cend(), [](bool ok)
+                          { return ok; });
         }
-        return ok;
     }
 
     LOG_F(INFO, "family feature table not found, check family hierarchy");
@@ -103,9 +125,8 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
     {
         LOG_F(INFO, "class family hierarchy check pass");
         auto *parent_class = ctx.classTable.lookup(parent);
-        auto old_errors = ctx.errors();
-        parent_class->create_family_feature_table(ctx);
-        if (old_errors < ctx.errors())
+        const auto ok = parent_class->create_family_feature_table(ctx);
+        if (!ok)
         {
             LOG_F(INFO, "found errors in parent feature table creation, return");
             return false;
@@ -227,18 +248,14 @@ void class__class::check_superclass_is_not_primitives(SemantContext &ctx)
     }
 }
 
-void class__class::check_Main_has_main(SemantContext &ctx)
+bool class__class::check_Main_has_main(SemantContext &ctx)
 {
     if (name->equal_string("Main", 4))
     {
         const auto not_found = nullptr == ctx.familyMethodTable->probe(main_meth);
-        if (not_found)
-        {
-            ctx.semant_error(this)
-                << error_message_no_main_in_Main()
-                << "\n";
-        }
+        return !not_found;
     }
+    return true;
 }
 
 Symbol class__class::get_filename()
@@ -269,9 +286,4 @@ string error_message_superclass_is_primitive(const string &class_name, const str
 string error_message_class_is_redefined(const string &class_name)
 {
     return "Class " + class_name + " was previously defined.";
-}
-
-string error_message_no_main_in_Main()
-{
-    return "No 'main' method in class Main.";
 }

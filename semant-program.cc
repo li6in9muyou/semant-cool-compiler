@@ -1,4 +1,6 @@
 #include <symtab.h>
+#include <algorithm>
+using std::all_of;
 #include <string>
 using std::string;
 
@@ -107,29 +109,40 @@ void program_class::semant()
 
     install_basic_classes(ctx);
     LOG_F(INFO, "installed basic classes at %s", filename->get_string());
-
-    LOG_F(INFO, "ctx.classTable.enterscope at register user-defined classes");
+    
     ctx.classTable.enterscope();
-    auto ok = true;
     {
-        LOG_SCOPE_F(INFO, "class register symbol at %s", filename->get_string());
-        for (auto i = classes->first(); classes->more(i); i = classes->next(i))
+        LOG_SCOPE_F(INFO, "registering user-defined classes and creating family feature table at %s", filename->get_string());
+
         {
-            auto *cls = (class__class *)classes->nth(i);
-            ok &= cls->register_symbol(ctx);
+            vector<bool> results;
+            LOG_SCOPE_F(INFO, "class register symbol at %s", filename->get_string());
+            for (auto i = classes->first(); classes->more(i); i = classes->next(i))
+            {
+                auto *cls = (class__class *)classes->nth(i);
+                const auto ok = cls->register_symbol(ctx);
+                results.emplace_back(ok);
+            }
+            const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
+                                   { return ok; });
+            abort_if_errors(ok);
+        }
+
+        {
+            vector<bool> results;
+            LOG_SCOPE_F(INFO, "class create family feature table at %s", filename->get_string());
+            for (auto i = classes->first(); classes->more(i); i = classes->next(i))
+            {
+                auto *cls = (class__class *)classes->nth(i);
+                LOG_SCOPE_F(INFO, "create family feature table at %s", cls->get_name()->get_string());
+                const auto ok = cls->create_family_feature_table(ctx);
+                results.emplace_back(ok);
+            }
+            const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
+                                   { return ok; });
+            abort_if_errors(ok);
         }
     }
-    {
-        LOG_SCOPE_F(INFO, "class create family feature table at %s", filename->get_string());
-        for (auto i = classes->first(); classes->more(i); i = classes->next(i))
-        {
-            auto *cls = (class__class *)classes->nth(i);
-            LOG_SCOPE_F(INFO, "create family feature table at %s", cls->get_name()->get_string());
-            ok &= cls->create_family_feature_table(ctx);
-        }
-    }
-    abort_if_errors(ok);
-    LOG_F(INFO, "registered class symbols at %s", filename->get_string());
 
     check_Main_is_defined(ctx);
     ctx.abort_if_error();
@@ -137,14 +150,17 @@ void program_class::semant()
 
     {
         LOG_SCOPE_F(INFO, "descend into class at %s", filename->get_string());
-        const auto cnt = classes->len();
-        for (auto i = cnt - 1; i >= 0; i -= 1)
+        vector<bool> results;
+        for (auto i = classes->len() - 1; i >= 0; i -= 1)
         {
             auto *cls = (class__class *)classes->nth(i);
-            cls->semant(ctx);
+            const auto ok = cls->semant(ctx);
+            results.emplace_back(ok);
         }
+        const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
+                               { return ok; });
+        abort_if_errors(ok);
     }
-    ctx.abort_if_error();
 
     ctx.classTable.exitscope();
     LOG_F(INFO, "semant ended at %s", filename->get_string());
@@ -157,7 +173,7 @@ string error_message_Main_is_not_defined()
 
 void program_class::check_Main_is_defined(SemantContext &ctx)
 {
-    const auto bad = ctx.classTable.probe(Main) == nullptr;
+    const auto bad = ctx.classTable.lookup(Main) == nullptr;
 
     if (bad)
     {

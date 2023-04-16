@@ -18,19 +18,19 @@ using semant_errors::report_errors;
     auto shadowed = false;
     if (!redefined)
     {
-        shadowed = check_no_shadow_attribute_in_superclass(ctx);
-        if (!shadowed)
-        {
-            LOG_F(INFO, "not redefining and not shadowing, add symbol");
-            ctx.familyAttributeTable->addid(name, this);
-        }
-        else
+        shadowed = !check_no_shadow_attribute_in_superclass(ctx);
+        if (shadowed)
         {
             LOG_F(INFO, "shadow check failed, does not add symbol");
             report_errors(
                 ErrorType::ShadowAttributeInSuperclass,
                 {{K::attributeName, name->get_string()},
                  {K::lineNumber, to_string(line_number)}});
+        }
+        else
+        {
+            LOG_F(INFO, "not redefining and not shadowing, add symbol");
+            ctx.familyAttributeTable->addid(name, this);
         }
     }
     else
@@ -46,7 +46,7 @@ using semant_errors::report_errors;
 
 [[nodiscard]] bool attr_class::check_type_decl_is_defined(SemantContext &ctx)
 {
-    const auto bad = nullptr == ctx.classTable.probe(this->type_decl);
+    const auto bad = nullptr == ctx.classTable.lookup(this->type_decl);
     return !bad;
 }
 
@@ -56,18 +56,18 @@ using semant_errors::report_errors;
     return !shadow;
 }
 
-void attr_class::semant(SemantContext &ctx)
+bool attr_class::semant(SemantContext &ctx)
 {
     LOG_SCOPE_FUNCTION(INFO);
 
-    auto ok = true;
-
-    ok &= check_type_decl_is_defined(ctx);
+    const auto ok = check_type_decl_is_defined(ctx);
     if (!ok)
     {
         report_errors(
             ErrorType::AttributeTypeIsNotDefined,
-            {{K::attributeName, name->get_string()},
+            {{K::typeName, type_decl->get_string()},
+             {K::attributeName, name->get_string()},
              {K::lineNumber, to_string(line_number)}});
     }
+    return ok;
 }

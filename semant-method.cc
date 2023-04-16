@@ -9,9 +9,10 @@ using semant_errors::ErrorType;
 using semant_errors::K;
 using semant_errors::report_errors;
 
-void method_class::semant(SemantContext &ctx)
+bool method_class::semant(SemantContext &ctx)
 {
     LOG_SCOPE_FUNCTION(INFO);
+    return true;
 }
 
 bool method_class::register_symbol(SemantContext &ctx)

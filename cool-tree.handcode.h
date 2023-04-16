@@ -72,7 +72,7 @@ public:                                                                         
 	void dump_with_types(ostream &, int);                                                                         \
 	Symbol get_name();                                                                                            \
 	Symbol get_filename();                                                                                        \
-	void semant(SemantContext &);                                                                                 \
+	bool semant(SemantContext &);                                                                                 \
 	bool register_symbol(SemantContext &);                                                                        \
 	bool create_family_feature_table(SemantContext &);                                                            \
                                                                                                                   \
@@ -81,18 +81,18 @@ private:                                                                        
 	void check_superclass_is_defined(SemantContext &);                                                            \
 	void check_superclass_is_not_in_cycle(SemantContext &);                                                       \
 	void check_superclass_is_not_primitives(SemantContext &);                                                     \
-	void check_Main_has_main(SemantContext &);
+	bool check_Main_has_main(SemantContext &);
 
 #define Feature_EXTRAS                                \
 public:                                               \
 	virtual void dump_with_types(ostream &, int) = 0; \
-	virtual void semant(SemantContext &) = 0;         \
+	virtual bool semant(SemantContext &) = 0;         \
 	virtual bool register_symbol(SemantContext &) = 0;
 
 #define Feature_SHARED_EXTRAS              \
 public:                                    \
 	void dump_with_types(ostream &, int);  \
-	void semant(SemantContext &) override; \
+	bool semant(SemantContext &) override; \
 	bool register_symbol(SemantContext &) override;
 
 #define method_EXTRAS \

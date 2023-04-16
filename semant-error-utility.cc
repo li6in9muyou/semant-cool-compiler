@@ -29,6 +29,11 @@ namespace semant_errors
          {
              return "Attribute " + ctx.at(K::attributeName) + " is an attribute of an inherited class.";
          }},
+        {ErrorType::NoMainInClassMain,
+         [](const unordered_map<K, string> &_)
+         {
+             return "No 'main' method in class Main.";
+         }},
     };
 
     bool report_errors(ErrorType type, const unordered_map<K, string> &ctx)
