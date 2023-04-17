@@ -167,8 +167,7 @@ bool class__class::register_symbol(SemantContext &ctx)
 
 bool class__class::check_superclass_is_defined(SemantContext &ctx)
 {
-    const auto bad = ctx.classTable.lookup(parent) == nullptr;
-    return !bad;
+    return ctx.classTable.lookup(parent) != nullptr;
 }
 
 bool contains(const string &needle, const std::set<string> &haystack)
@@ -176,7 +175,7 @@ bool contains(const string &needle, const std::set<string> &haystack)
     return haystack.cend() != haystack.find(needle);
 }
 
-bool class__class::check_class_in_loop(
+bool class__class::is_class_in_loop(
     SymbolTable<Symbol, class__class> &classTable,
     const class__class &me,
     std::set<string> &mark)
@@ -199,7 +198,7 @@ bool class__class::check_class_in_loop(
         return false;
     }
     mark.insert(my_name);
-    ans = check_class_in_loop(classTable, *my_parent, mark);
+    ans = is_class_in_loop(classTable, *my_parent, mark);
     mark.erase(my_name);
 
     return ans;
@@ -214,36 +213,21 @@ bool class__class::check_superclass_is_not_in_cycle(SemantContext &ctx)
     {
         return true;
     }
-    const auto bad = check_class_in_loop(ctx.classTable, *my_parent, mark);
-    return !bad;
+    return !is_class_in_loop(ctx.classTable, *my_parent, mark);
 }
 
 bool class__class::check_superclass_is_not_primitives(SemantContext &ctx)
 {
-    auto bad = false;
-
-    if (Bool->equal_string(parent->get_string(), parent->get_len()))
-    {
-        bad = true;
-    }
-    if (Int->equal_string(parent->get_string(), parent->get_len()))
-    {
-        bad = true;
-    }
-    if (Str->equal_string(parent->get_string(), parent->get_len()))
-    {
-        bad = true;
-    }
-
-    return !bad;
+    return !Bool->equal_string(parent->get_string(), parent->get_len()) &&
+           !Int->equal_string(parent->get_string(), parent->get_len()) &&
+           !Str->equal_string(parent->get_string(), parent->get_len());
 }
 
 bool class__class::check_Main_has_main(SemantContext &ctx)
 {
     if (name->equal_string("Main", 4))
     {
-        const auto not_found = nullptr == ctx.familyMethodTable->probe(main_meth);
-        return !not_found;
+        return nullptr != ctx.familyMethodTable->probe(main_meth);
     }
     return true;
 }

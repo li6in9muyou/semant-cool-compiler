@@ -107,6 +107,7 @@ void program_class::semant()
     semant_errors::env::FileName = filename->get_string();
     ctx.set_filename(filename);
 
+    ctx.classTable.enterscope();
     install_basic_classes(ctx);
     LOG_F(INFO, "installed basic classes at %s", filename->get_string());
     
@@ -282,8 +283,6 @@ void program_class::install_basic_classes(SemantContext &ctx)
                                           no_expr()))),
                filename);
 
-    LOG_F(INFO, "ctx.classTable.enterscope at install basic classes");
-    ctx.classTable.enterscope();
     ctx.classTable.addid(Str, (class__class *)Str_class);
     ctx.classTable.addid(Int, (class__class *)Int_class);
     ctx.classTable.addid(Bool, (class__class *)Bool_class);

@@ -46,14 +46,12 @@ using semant_errors::report_errors;
 
 [[nodiscard]] bool attr_class::check_type_decl_is_defined(SemantContext &ctx)
 {
-    const auto bad = nullptr == ctx.classTable.lookup(this->type_decl);
-    return !bad;
+    return nullptr != ctx.classTable.lookup(this->type_decl);
 }
 
 [[nodiscard]] bool attr_class::check_no_shadow_attribute_in_superclass(SemantContext &ctx)
 {
-    const auto shadow = nullptr != ctx.familyAttributeTable->lookup(name);
-    return !shadow;
+    return nullptr == ctx.familyAttributeTable->lookup(name);
 }
 
 bool attr_class::semant(SemantContext &ctx)

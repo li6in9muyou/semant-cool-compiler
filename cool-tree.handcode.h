@@ -77,7 +77,7 @@ public:                                                                         
 	bool create_family_feature_table(SemantContext &);                                                                          \
                                                                                                                                 \
 private:                                                                                                                        \
-	[[nodiscard]] bool check_class_in_loop(SymbolTable<Symbol, class__class> &, const class__class &, std::set<std::string> &); \
+	[[nodiscard]] bool is_class_in_loop(SymbolTable<Symbol, class__class> &, const class__class &, std::set<std::string> &); \
 	[[nodiscard]] bool check_superclass_is_defined(SemantContext &);                                                            \
 	[[nodiscard]] bool check_superclass_is_not_in_cycle(SemantContext &);                                                       \
 	[[nodiscard]] bool check_superclass_is_not_primitives(SemantContext &);                                                     \
