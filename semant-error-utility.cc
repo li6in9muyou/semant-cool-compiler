@@ -9,10 +9,25 @@ namespace semant_errors
     string env::FileName = "";
 
     const unordered_map<ErrorType, RenderFunction> handlers = {
+        {ErrorType::FormalTypeIsNotSelfType,
+         [](const unordered_map<K, string> &ctx)
+         {
+             return "Formal parameter " + ctx.at(K::name) + " cannot have type SELF_TYPE.";
+         }},
+        {ErrorType::FormalTypeIsNotDefined,
+         [](const unordered_map<K, string> &ctx)
+         {
+             return "Class " + ctx.at(K::typeName) + " of formal parameter " + ctx.at(K::name) + " is undefined.";
+         }},
         {ErrorType::MethodRedefined,
          [](const unordered_map<K, string> &ctx)
          {
              return "Method " + ctx.at(K::methodName) + " is multiply defined.";
+         }},
+        {ErrorType::MethodReturnTypeIsNotDefined,
+         [](const unordered_map<K, string> &ctx)
+         {
+             return "Undefined return type " + ctx.at(K::typeName) + " in method " + ctx.at(K::methodName) + ".";
          }},
         {ErrorType::AttributeRedefined,
          [](const unordered_map<K, string> &ctx)

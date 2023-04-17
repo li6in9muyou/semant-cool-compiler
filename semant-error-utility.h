@@ -22,12 +22,16 @@ namespace semant_errors
         SuperclassIsNotDefined,
         SuperclassIsPrimitive,
         ClassIsRedefined,
-            // method
-            MethodRedefined,
+        // method
+        MethodRedefined,
+        MethodReturnTypeIsNotDefined,
         // attribute
         AttributeRedefined,
         AttributeTypeIsNotDefined,
         ShadowAttributeInSuperclass,
+        // formal
+        FormalTypeIsNotDefined,
+        FormalTypeIsNotSelfType,
     };
 
     enum class K
@@ -38,6 +42,7 @@ namespace semant_errors
         lineNumber,
         className,
         parentName,
+        name,
     };
 
     using RenderFunction = function<string(const unordered_map<K, string> &)>;

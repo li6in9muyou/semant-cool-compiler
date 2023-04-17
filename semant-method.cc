@@ -11,8 +11,27 @@ using semant_errors::report_errors;
 
 bool method_class::semant(SemantContext &ctx)
 {
-    LOG_SCOPE_FUNCTION(INFO);
+    LOG_F(INFO, "semant at method %s", name->get_string());
+    auto ok = true;
+    ok = check_return_type_is_defined(ctx) && ok;
+    if (!ok)
+    {
+        report_errors(ErrorType::MethodReturnTypeIsNotDefined,
+                      {{K::methodName, name->get_string()},
+                       {K::typeName, return_type->get_string()},
+                       {K::lineNumber, to_string(line_number)}});
+    }
+    LOG_F(INFO, "descending into formals");
+    for (auto i = formals->first(); formals->more(i); i = formals->next(i))
+    {
+        ok = ((formal_class *)formals->nth(i))->semant(ctx) && ok;
+    }
     return true;
+}
+
+bool method_class::check_return_type_is_defined(SemantContext &ctx)
+{
+    return ctx.classTable.lookup(return_type) != nullptr;
 }
 
 bool method_class::register_symbol(SemantContext &ctx)

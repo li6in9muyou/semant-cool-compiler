@@ -67,48 +67,60 @@ public:                                          \
 class SemantContext;
 class class__class;
 
-#define class__EXTRAS                                                                                                           \
-public:                                                                                                                         \
-	void dump_with_types(ostream &, int);                                                                                       \
-	Symbol get_name();                                                                                                          \
-	Symbol get_filename();                                                                                                      \
-	bool semant(SemantContext &);                                                                                               \
-	bool register_symbol(SemantContext &);                                                                                      \
-	bool create_family_feature_table(SemantContext &);                                                                          \
-                                                                                                                                \
-private:                                                                                                                        \
+#define class__EXTRAS                                                                                                        \
+public:                                                                                                                      \
+	void dump_with_types(ostream &, int);                                                                                    \
+	Symbol get_name();                                                                                                       \
+	Symbol get_filename();                                                                                                   \
+	[[nodiscard]] bool semant(SemantContext &);                                                                              \
+	[[nodiscard]] bool register_symbol(SemantContext &);                                                                     \
+	[[nodiscard]] bool create_family_feature_table(SemantContext &);                                                         \
+                                                                                                                             \
+private:                                                                                                                     \
 	[[nodiscard]] bool is_class_in_loop(SymbolTable<Symbol, class__class> &, const class__class &, std::set<std::string> &); \
-	[[nodiscard]] bool check_superclass_is_defined(SemantContext &);                                                            \
-	[[nodiscard]] bool check_superclass_is_not_in_cycle(SemantContext &);                                                       \
-	[[nodiscard]] bool check_superclass_is_not_primitives(SemantContext &);                                                     \
+	[[nodiscard]] bool check_superclass_is_defined(SemantContext &);                                                         \
+	[[nodiscard]] bool check_superclass_is_not_in_cycle(SemantContext &);                                                    \
+	[[nodiscard]] bool check_superclass_is_not_primitives(SemantContext &);                                                  \
 	[[nodiscard]] bool check_Main_has_main(SemantContext &);
 
-#define Feature_EXTRAS                                \
-public:                                               \
-	virtual void dump_with_types(ostream &, int) = 0; \
-	virtual bool semant(SemantContext &) = 0;         \
-	virtual bool register_symbol(SemantContext &) = 0;
+#define Feature_EXTRAS                                      \
+public:                                                     \
+	virtual void dump_with_types(ostream &, int) = 0;       \
+	[[nodiscard]] virtual bool semant(SemantContext &) = 0; \
+	[[nodiscard]] virtual bool register_symbol(SemantContext &) = 0;
 
-#define Feature_SHARED_EXTRAS              \
-public:                                    \
-	void dump_with_types(ostream &, int);  \
-	bool semant(SemantContext &) override; \
-	bool register_symbol(SemantContext &) override;
+#define Feature_SHARED_EXTRAS \
+public:                       \
+	void dump_with_types(ostream &, int);
 
-#define method_EXTRAS \
-private:              \
-	bool check_return_type_is_defined(SemantContext &);
+#define method_EXTRAS                                             \
+public:                                                           \
+	[[nodiscard]] bool semant(SemantContext &) override;          \
+	[[nodiscard]] bool register_symbol(SemantContext &) override; \
+                                                                  \
+private:                                                          \
+	[[nodiscard]] bool check_return_type_is_defined(SemantContext &);
 
-#define attr_EXTRAS                                                \
-private:                                                           \
-	bool check_no_shadow_attribute_in_superclass(SemantContext &); \
-	bool check_type_decl_is_defined(SemantContext &);
+#define attr_EXTRAS                                                              \
+public:                                                                          \
+	[[nodiscard]] bool semant(SemantContext &) override;                         \
+	[[nodiscard]] bool register_symbol(SemantContext &) override;                \
+                                                                                 \
+private:                                                                         \
+	[[nodiscard]] bool check_no_shadow_attribute_in_superclass(SemantContext &); \
+	[[nodiscard]] bool check_type_decl_is_defined(SemantContext &);
 
 #define Formal_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#define formal_EXTRAS \
-	void dump_with_types(ostream &, int);
+#define formal_EXTRAS                           \
+public:                                         \
+	[[nodiscard]] bool semant(SemantContext &); \
+	void dump_with_types(ostream &, int);       \
+                                                \
+private:                                        \
+	[[nodiscard]] bool check_type_decl_is_defined(SemantContext &);\
+	[[nodiscard]] bool check_type_decl_is_not_self_type(SemantContext &);
 
 #define Case_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;

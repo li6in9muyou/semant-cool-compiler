@@ -28,6 +28,8 @@ bool class__class::semant(SemantContext &ctx)
     ctx.familyMethodTable = &familyFeatureTable.methods;
     ctx.familyAttributeTable = &familyFeatureTable.attributes;
     LOG_F(INFO, "bind family feature table to %p", &familyFeatureTable);
+    ctx.classTable.enterscope();
+    ctx.classTable.addid(SELF_TYPE, this);
 
     {
         LOG_SCOPE_F(INFO, "check Main class has main method");
@@ -58,6 +60,8 @@ bool class__class::semant(SemantContext &ctx)
         const auto ok = features->nth(i)->semant(ctx);
         results.emplace_back(ok);
     }
+
+    ctx.classTable.exitscope();
     return all_of(results.cbegin(), results.cend(), [](bool ok)
                   { return ok; });
 }
@@ -98,7 +102,6 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
             vector<bool> results;
             for (auto i = features->first(); features->more(i); i = features->next(i))
             {
-                LOG_F(INFO, "work on feature no.%d", i);
                 results.emplace_back(features->nth(i)->register_symbol(ctx));
             }
             return all_of(results.cbegin(), results.cend(), [](bool ok)
