@@ -93,13 +93,10 @@ public:                                                     \
 public:                       \
 	void dump_with_types(ostream &, int);
 
-#define method_EXTRAS                                             \
-public:                                                           \
-	[[nodiscard]] bool semant(SemantContext &) override;          \
-	[[nodiscard]] bool register_symbol(SemantContext &) override; \
-                                                                  \
-private:                                                          \
-	[[nodiscard]] bool check_return_type_is_defined(SemantContext &);
+#define method_EXTRAS                                    \
+public:                                                  \
+	[[nodiscard]] bool semant(SemantContext &) override; \
+	[[nodiscard]] bool register_symbol(SemantContext &) override;
 
 #define attr_EXTRAS                                      \
 public:                                                  \

@@ -3,6 +3,8 @@ using std::string;
 using std::to_string;
 
 #include "semant.h"
+#include "semant-utility.h"
+#include "semant-checks.h"
 #include "loguru.h"
 #include "semant-error-utility.h"
 using semant_errors::ErrorType;
@@ -13,14 +15,16 @@ bool method_class::semant(SemantContext &ctx)
 {
     LOG_F(INFO, "semant at method %s", name->get_string());
     auto ok = true;
-    ok = check_return_type_is_defined(ctx) && ok;
-    if (!ok)
-    {
-        report_errors(ErrorType::MethodReturnTypeIsNotDefined,
-                      {{K::methodName, name->get_string()},
-                       {K::typeName, return_type->get_string()},
-                       {K::lineNumber, to_string(line_number)}});
-    }
+
+    ok &= check_symbol_exists(
+        return_type,
+        ctx.classTable,
+        [&]()
+        {
+            err.print(location(ctx.filename, get_line_number()) +
+                      "Undefined return type " + return_type->get_string() + " in method " + name->get_string() + ".\n");
+        });
+
     LOG_F(INFO, "descending into formals");
     for (auto i = formals->first(); formals->more(i); i = formals->next(i))
     {
@@ -29,28 +33,26 @@ bool method_class::semant(SemantContext &ctx)
     return ok;
 }
 
-bool method_class::check_return_type_is_defined(SemantContext &ctx)
-{
-    return ctx.classTable.lookup(return_type) != nullptr;
-}
-
 bool method_class::register_symbol(SemantContext &ctx)
 {
-    LOG_F(INFO, "method register symbol at %s", name->get_string());
+    LOG_F(INFO, "register symbol at method %s", name->get_string());
     CHECK_NOTNULL_F(ctx.familyMethodTable, "ctx.familyMethodTable is nullptr");
-    const auto redefined = nullptr != ctx.familyMethodTable->probe(name);
-    if (!redefined)
+
+    const auto ok = check_symbol_not_exists_in_current_scope(
+        name,
+        *ctx.familyMethodTable,
+        [&]()
+        {
+            LOG_F(INFO, "redefinition check failed, add error");
+            err.print(location(ctx.filename, get_line_number()) +
+                      "Method " + name->get_string() + " is multiply defined.\n");
+        });
+
+    if (ok)
     {
         LOG_IF_F(INFO, nullptr != ctx.familyMethodTable->lookup(name), "this method overrides");
         ctx.familyMethodTable->addid(name, this);
-        return true;
     }
-    else
-    {
-        LOG_F(INFO, "redefinition check failed, add error");
-        report_errors(ErrorType::MethodRedefined,
-                      {{K::methodName, name->get_string()},
-                       {K::lineNumber, to_string(line_number)}});
-        return false;
-    }
+
+    return ok;
 }
