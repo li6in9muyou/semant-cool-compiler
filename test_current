@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+./test_one "$ex"/semant/my-class*bad*
+./test_one "$ex"/semant/my-feature*bad*
+./test_one "$ex"/semant/my-method*bad*
