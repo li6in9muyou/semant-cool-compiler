@@ -10,13 +10,11 @@ using std::map;
 using std::all_of;
 
 #include "semant.h"
+#include "semant-checks.h"
+#include "semant-utility.h"
 #include "cool-tree.h"
 #include "list.h"
 #include "loguru.h"
-#include "semant-error-utility.h"
-using semant_errors::ErrorType;
-using semant_errors::K;
-using semant_errors::report_errors;
 
 bool class__class::semant(SemantContext &ctx)
 {
@@ -33,37 +31,30 @@ bool class__class::semant(SemantContext &ctx)
 
     {
         LOG_SCOPE_F(INFO, "check Main class has main method");
-        const auto ok = check_Main_has_main(ctx);
-        if (!ok)
+        if (check_symbol_is(name, Main))
         {
-            report_errors(ErrorType::NoMainInClassMain,
-                          {{K::methodName, name->get_string()},
-                           {K::lineNumber, to_string(line_number)}});
+            check_symbol_exists_in_current_scope(
+                main_meth,
+                *ctx.familyMethodTable,
+                [&]()
+                {
+                    err.print(location(get_filename(), get_line_number()) +
+                              "No 'main' method in class Main.\n");
+                });
         }
-    }
-    auto old_errors = ctx.errors();
-    if (old_errors < ctx.errors())
-    {
-        LOG_F(INFO, "found errors in Main.main check, return");
-    }
-    else
-    {
-        LOG_F(INFO, "Main.main check pass");
     }
 
     LOG_F(INFO, "descending into features");
 
-    vector<bool> results;
+    auto ok = false;
     const auto cnt = features->len();
     for (auto i = cnt - 1; i >= 0; i -= 1)
     {
-        const auto ok = features->nth(i)->semant(ctx);
-        results.emplace_back(ok);
+        ok &= features->nth(i)->semant(ctx);
     }
 
     ctx.classTable.exitscope();
-    return all_of(results.cbegin(), results.cend(), [](bool ok)
-                  { return ok; });
+    return ok;
 }
 
 bool class__class::create_family_feature_table(SemantContext &ctx)
@@ -109,29 +100,48 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
         }
     }
 
-    LOG_F(INFO, "family feature table not found, check family hierarchy");
-    if (!check_superclass_is_defined(ctx))
     {
-        report_errors(ErrorType::SuperclassIsNotDefined,
-                      {{K::className, name->get_string()},
-                       {K::parentName, parent->get_string()},
-                       {K::lineNumber, to_string(line_number)}});
-        return false;
-    }
-    if (!check_superclass_is_not_in_cycle(ctx))
-    {
-        report_errors(ErrorType::SuperclassIsInCycle,
-                      {{K::className, name->get_string()},
-                       {K::lineNumber, to_string(line_number)}});
-        return false;
-    }
-    if (!check_superclass_is_not_primitives(ctx))
-    {
-        report_errors(ErrorType::SuperclassIsPrimitive,
-                      {{K::className, name->get_string()},
-                       {K::parentName, parent->get_string()},
-                       {K::lineNumber, to_string(line_number)}});
-        return false;
+        auto ok = true;
+
+        LOG_F(INFO, "check superclass is defined");
+        ok &= check_symbol_exists(
+            parent,
+            ctx.classTable,
+            [&]()
+            {
+                err.print(
+                    location(get_filename(), get_line_number()) +
+                    "Class " + name->get_string() + " inherits from an undefined class " + parent->get_string() + ".\n");
+            });
+        if (!ok)
+        {
+            return false;
+        }
+
+        LOG_F(INFO, "check superclass is not primitives");
+        const auto e = [&]()
+        {
+            err.print(
+                location(get_filename(), get_line_number()) +
+                "Class " + name->get_string() + " cannot inherit class " + parent->get_string() + ".\n");
+        };
+        ok &= check_symbol_is_not(parent, Bool, e);
+        ok &= check_symbol_is_not(parent, Int, e);
+        ok &= check_symbol_is_not(parent, Str, e);
+        if (!ok)
+        {
+            return false;
+        }
+
+        LOG_F(INFO, "check superclass is not in inheritance cycle");
+        auto mark = std::set<string>();
+        if (!check_class_in_loop(ctx.classTable, *ctx.classTable.lookup(parent), mark))
+        {
+            err.print(
+                location(get_filename(), get_line_number()) +
+                "Class " + name->get_string() + ", or an ancestor of " + name->get_string() + ", is involved in an inheritance cycle.\n");
+            return false;
+        }
     }
 
     LOG_F(INFO, "class family hierarchy check pass");
@@ -150,27 +160,25 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
 
 bool class__class::register_symbol(SemantContext &ctx)
 {
-    LOG_F(INFO, "register symbol at %s", name->get_string());
-    const auto ok = ctx.classTable.probe(name) == nullptr;
+    LOG_F(INFO, "register symbol at class %s", name->get_string());
+
+    const auto ok = check_symbol_not_exists(
+        name,
+        ctx.classTable,
+        [&]()
+        {
+            LOG_F(INFO, "it is redefined");
+            err.print(
+                location(get_filename(), get_line_number()) +
+                "Class " + name->get_string() + " was previously defined.\n");
+        });
     if (ok)
     {
         LOG_F(INFO, "add new class");
         ctx.classTable.addid(name, this);
-        return true;
     }
-    else
-    {
-        LOG_F(INFO, "it is redefined");
-        report_errors(ErrorType::ClassIsRedefined,
-                      {{K::className, name->get_string()},
-                       {K::lineNumber, to_string(line_number)}});
-        return false;
-    }
-}
 
-bool class__class::check_superclass_is_defined(SemantContext &ctx)
-{
-    return ctx.classTable.lookup(parent) != nullptr;
+    return ok;
 }
 
 bool contains(const string &needle, const std::set<string> &haystack)
@@ -178,69 +186,42 @@ bool contains(const string &needle, const std::set<string> &haystack)
     return haystack.cend() != haystack.find(needle);
 }
 
-bool class__class::is_class_in_loop(
+bool class__class::check_class_in_loop(
     SymbolTable<Symbol, class__class> &classTable,
     const class__class &me,
     std::set<string> &mark)
 {
-    const string my_name(me.name->get_string());
-
-    if (my_name == "Object")
+    LOG_SCOPE_F(INFO, "check inheritance loop on %s", me.name->get_string());
+    if (check_symbol_is(me.name, No_class))
     {
-        return false;
+        LOG_F(INFO, "parent is No_class, return true");
+        return true;
     }
+
+    const string my_name(me.name->get_string());
     if (contains(my_name, mark))
     {
-        return true;
-    }
-
-    auto ans = false;
-    const auto my_parent = classTable.probe(me.parent);
-    if (my_parent == nullptr)
-    {
+        LOG_F(INFO, "parent has been visited before, return false");
         return false;
     }
-    mark.insert(my_name);
-    ans = is_class_in_loop(classTable, *my_parent, mark);
-    mark.erase(my_name);
 
-    return ans;
-}
-
-bool class__class::check_superclass_is_not_in_cycle(SemantContext &ctx)
-{
-    std::set<string> mark;
-
-    const auto my_parent = ctx.classTable.probe(parent);
+    const auto my_parent = classTable.lookup(me.parent);
     if (my_parent == nullptr)
     {
+        LOG_F(INFO, "parent %s is nullptr, return true", me.parent->get_string());
         return true;
     }
-    return !is_class_in_loop(ctx.classTable, *my_parent, mark);
-}
 
-bool class__class::check_superclass_is_not_primitives(SemantContext &ctx)
-{
-    return !Bool->equal_string(parent->get_string(), parent->get_len()) &&
-           !Int->equal_string(parent->get_string(), parent->get_len()) &&
-           !Str->equal_string(parent->get_string(), parent->get_len());
-}
+    mark.insert(my_name);
+    const auto ok = check_class_in_loop(classTable, *my_parent, mark);
+    mark.erase(my_name);
 
-bool class__class::check_Main_has_main(SemantContext &ctx)
-{
-    if (name->equal_string("Main", 4))
-    {
-        return nullptr != ctx.familyMethodTable->probe(main_meth);
-    }
-    return true;
+    LOG_IF_F(INFO, ok, "return true");
+    LOG_IF_F(INFO, !ok, "return true");
+    return ok;
 }
 
 Symbol class__class::get_filename()
 {
     return filename;
-}
-
-Symbol class__class::get_name()
-{
-    return name;
 }

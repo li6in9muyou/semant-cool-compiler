@@ -67,21 +67,16 @@ public:                                          \
 class SemantContext;
 class class__class;
 
-#define class__EXTRAS                                                                                                        \
-public:                                                                                                                      \
-	void dump_with_types(ostream &, int);                                                                                    \
-	Symbol get_name();                                                                                                       \
-	Symbol get_filename();                                                                                                   \
-	[[nodiscard]] bool semant(SemantContext &);                                                                              \
-	[[nodiscard]] bool register_symbol(SemantContext &);                                                                     \
-	[[nodiscard]] bool create_family_feature_table(SemantContext &);                                                         \
-                                                                                                                             \
-private:                                                                                                                     \
-	[[nodiscard]] bool is_class_in_loop(SymbolTable<Symbol, class__class> &, const class__class &, std::set<std::string> &); \
-	[[nodiscard]] bool check_superclass_is_defined(SemantContext &);                                                         \
-	[[nodiscard]] bool check_superclass_is_not_in_cycle(SemantContext &);                                                    \
-	[[nodiscard]] bool check_superclass_is_not_primitives(SemantContext &);                                                  \
-	[[nodiscard]] bool check_Main_has_main(SemantContext &);
+#define class__EXTRAS                                                \
+public:                                                              \
+	void dump_with_types(ostream &, int);                            \
+	Symbol get_filename();                                           \
+	[[nodiscard]] bool semant(SemantContext &);                      \
+	[[nodiscard]] bool register_symbol(SemantContext &);             \
+	[[nodiscard]] bool create_family_feature_table(SemantContext &); \
+                                                                     \
+private:                                                             \
+	[[nodiscard]] bool check_class_in_loop(SymbolTable<Symbol, class__class> &, const class__class &, std::set<std::string> &);
 
 #define Feature_EXTRAS                                      \
 public:                                                     \
