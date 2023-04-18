@@ -26,7 +26,7 @@ bool method_class::semant(SemantContext &ctx)
     {
         ok = ((formal_class *)formals->nth(i))->semant(ctx) && ok;
     }
-    return true;
+    return ok;
 }
 
 bool method_class::check_return_type_is_defined(SemantContext &ctx)
