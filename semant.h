@@ -50,9 +50,9 @@ class SemantContext
 private:
   int semant_errors;
   ostream &error_stream;
-  Symbol filename;
 
 public:
+  Symbol filename;
   unordered_map<Symbol, FeatureTable> programFeatureTable;
   SymbolTable<Symbol, class__class> classTable;
   SymbolTable<Symbol, method_class> *familyMethodTable;
