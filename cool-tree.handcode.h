@@ -116,11 +116,7 @@ private:                                                                        
 #define formal_EXTRAS                           \
 public:                                         \
 	[[nodiscard]] bool semant(SemantContext &); \
-	void dump_with_types(ostream &, int);       \
-                                                \
-private:                                        \
-	[[nodiscard]] bool check_type_decl_is_defined(SemantContext &);\
-	[[nodiscard]] bool check_type_decl_is_not_self_type(SemantContext &);
+	void dump_with_types(ostream &, int);
 
 #define Case_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;
