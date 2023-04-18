@@ -21,4 +21,4 @@ public:
 
 extern NoRepeatPrinter err;
 
-string location(Symbol &filename, int lineno);
+string location(const Symbol &filename, int lineno);

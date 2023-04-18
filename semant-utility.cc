@@ -16,7 +16,7 @@ bool NoRepeatPrinter::print(const string &text, ostream &out)
     }
 }
 
-string location(Symbol &filename, int lineno)
+string location(const Symbol &filename, int lineno)
 {
     return string(filename->get_string()) + ":" + to_string(lineno) + ": ";
 }
