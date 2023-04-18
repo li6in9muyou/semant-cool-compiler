@@ -135,7 +135,6 @@ void program_class::semant()
             for (auto i = classes->first(); classes->more(i); i = classes->next(i))
             {
                 auto *cls = (class__class *)classes->nth(i);
-                LOG_SCOPE_F(INFO, "create family feature table at %s", cls->get_name()->get_string());
                 const auto ok = cls->create_family_feature_table(ctx);
                 results.emplace_back(ok);
             }
