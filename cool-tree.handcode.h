@@ -101,14 +101,10 @@ public:                                                           \
 private:                                                          \
 	[[nodiscard]] bool check_return_type_is_defined(SemantContext &);
 
-#define attr_EXTRAS                                                              \
-public:                                                                          \
-	[[nodiscard]] bool semant(SemantContext &) override;                         \
-	[[nodiscard]] bool register_symbol(SemantContext &) override;                \
-                                                                                 \
-private:                                                                         \
-	[[nodiscard]] bool check_no_shadow_attribute_in_superclass(SemantContext &); \
-	[[nodiscard]] bool check_type_decl_is_defined(SemantContext &);
+#define attr_EXTRAS                                      \
+public:                                                  \
+	[[nodiscard]] bool semant(SemantContext &) override; \
+	[[nodiscard]] bool register_symbol(SemantContext &) override;
 
 #define Formal_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;
