@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
-./test_one "$ex"/semant/my-class*bad*
-./test_one "$ex"/semant/my-feature*bad*
-./test_one "$ex"/semant/my-method*bad*
+if ! make semant; then
+    exit 1
+fi
+./test_one -q "$ex"/semant/my-class*bad*
+./test_one -q "$ex"/semant/my-feature*bad*
+./test_one -q "$ex"/semant/my-method*bad*
