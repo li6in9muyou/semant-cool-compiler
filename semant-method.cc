@@ -6,10 +6,6 @@ using std::to_string;
 #include "semant-utility.h"
 #include "semant-checks.h"
 #include "loguru.h"
-#include "semant-error-utility.h"
-using semant_errors::ErrorType;
-using semant_errors::K;
-using semant_errors::report_errors;
 
 bool method_class::semant(SemantContext &ctx)
 {
