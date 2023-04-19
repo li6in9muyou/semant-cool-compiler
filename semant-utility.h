@@ -22,3 +22,5 @@ public:
 extern NoRepeatPrinter err;
 
 string location(const Symbol &filename, int lineno);
+
+void abort_if_not_ok(bool ok);

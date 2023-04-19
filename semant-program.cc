@@ -5,9 +5,9 @@ using std::all_of;
 using std::string;
 
 #include "semant.h"
+#include "semant-checks.h"
+#include "semant-utility.h"
 #include "loguru.h"
-#include "semant-error-utility.h"
-using semant_errors::abort_if_errors;
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -104,13 +104,12 @@ void program_class::semant()
 
     const auto filename = classes->nth(classes->first())->get_filename();
     SemantContext ctx;
-    semant_errors::env::FileName = filename->get_string();
-    ctx.set_filename(filename);
+    ctx.filename = filename;
 
     ctx.classTable.enterscope();
     install_basic_classes(ctx);
     LOG_F(INFO, "installed basic classes at %s", filename->get_string());
-    
+
     ctx.classTable.enterscope();
     {
         LOG_SCOPE_F(INFO, "registering user-defined classes and creating family feature table at %s", filename->get_string());
@@ -126,7 +125,7 @@ void program_class::semant()
             }
             const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
                                    { return ok; });
-            abort_if_errors(ok);
+            abort_if_not_ok(ok);
         }
 
         {
@@ -140,12 +139,18 @@ void program_class::semant()
             }
             const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
                                    { return ok; });
-            abort_if_errors(ok);
+            abort_if_not_ok(ok);
         }
     }
 
-    check_Main_is_defined(ctx);
-    ctx.abort_if_error();
+    abort_if_not_ok(
+        check_symbol_exists(
+            Main,
+            ctx.classTable,
+            [&]()
+            {
+                err.print("Class Main is not defined.\n");
+            }));
     LOG_F(INFO, "Main check passed at %s", filename->get_string());
 
     {
@@ -159,26 +164,11 @@ void program_class::semant()
         }
         const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
                                { return ok; });
-        abort_if_errors(ok);
+        abort_if_not_ok(ok);
     }
 
     ctx.classTable.exitscope();
     LOG_F(INFO, "semant ended at %s", filename->get_string());
-}
-
-string error_message_Main_is_not_defined()
-{
-    return "Class Main is not defined.";
-}
-
-void program_class::check_Main_is_defined(SemantContext &ctx)
-{
-    const auto bad = ctx.classTable.lookup(Main) == nullptr;
-
-    if (bad)
-    {
-        ctx.semant_error() << error_message_Main_is_not_defined() << "\n";
-    }
 }
 
 void program_class::install_basic_classes(SemantContext &ctx)

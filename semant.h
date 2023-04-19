@@ -47,23 +47,13 @@ public:
 
 class SemantContext
 {
-private:
-  int semant_errors;
-  ostream &error_stream;
-
 public:
   Symbol filename;
   unordered_map<Symbol, FeatureTable> programFeatureTable;
   SymbolTable<Symbol, class__class> classTable;
   SymbolTable<Symbol, method_class> *familyMethodTable;
   SymbolTable<Symbol, attr_class> *familyAttributeTable;
-  SemantContext();
-  void set_filename(Symbol filename);
-  int errors() { return semant_errors; }
-  ostream &semant_error();
-  ostream &semant_error(tree_node *t);
-  ostream &semant_error(Symbol filename, tree_node *t);
-  void abort_if_error();
+  SemantContext() = default;
 };
 
 #endif

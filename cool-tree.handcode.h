@@ -54,8 +54,7 @@ typedef Cases_class *Cases;
 public:                                          \
 	void dump_with_types(ostream &, int);        \
 	void install_basic_classes(SemantContext &); \
-	void semant();                               \
-	void check_Main_is_defined(SemantContext &);
+	void semant();
 
 #define Class__EXTRAS                  \
 	virtual Symbol get_filename() = 0; \
