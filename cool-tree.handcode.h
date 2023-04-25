@@ -108,9 +108,6 @@ public:                                         \
 #define Case_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#define branch_EXTRAS \
-	void dump_with_types(ostream &, int);
-
 #define Expression_EXTRAS                             \
 	Symbol type;                                      \
 	Symbol get_type()                                 \
@@ -140,6 +137,16 @@ public:                                         \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
 #define block_EXTRAS \
+public:              \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define typcase_EXTRAS \
+public:                \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define branch_EXTRAS                     \
+public:                                   \
+	void dump_with_types(ostream &, int); \
+	[[nodiscard]] bool semant(SemantContext &ctx);
 
 #endif
