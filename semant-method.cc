@@ -22,6 +22,7 @@ bool method_class::semant(SemantContext &ctx)
         });
 
     LOG_F(INFO, "descending into formals");
+    LOG_IF_F(INFO, formals->len() == 0, "no formals");
     for (auto i = formals->first(); formals->more(i); i = formals->next(i))
     {
         ok = ((formal_class *)formals->nth(i))->semant(ctx) && ok;
