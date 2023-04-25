@@ -127,9 +127,19 @@ public:                                         \
 	Expression_class()                                \
 	{                                                 \
 		type = (Symbol)NULL;                          \
+	}                                                 \
+	virtual bool semant(SemantContext &ctx)           \
+	{                                                 \
+		return false;                                 \
 	}
 
 #define Expression_SHARED_EXTRAS \
 	void dump_with_types(ostream &, int);
+
+#define new__EXTRAS \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define block_EXTRAS \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
 #endif

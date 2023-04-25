@@ -27,6 +27,10 @@ bool method_class::semant(SemantContext &ctx)
     {
         ok = ((formal_class *)formals->nth(i))->semant(ctx) && ok;
     }
+
+    LOG_F(INFO, "descending into expression");
+    ok = expr->semant(ctx) && ok;
+
     return ok;
 }
 
