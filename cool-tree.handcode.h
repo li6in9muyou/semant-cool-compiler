@@ -134,6 +134,7 @@ public:                                         \
 	void dump_with_types(ostream &, int);
 
 #define new__EXTRAS \
+public:             \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
 #define block_EXTRAS \
