@@ -170,10 +170,6 @@ public:               \
 public:            \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
-#define comp_EXTRAS \
-public:             \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
 #define int_const_EXTRAS \
 public:                  \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
@@ -184,6 +180,26 @@ public:                   \
 
 #define string_const_EXTRAS \
 public:                     \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define comp_EXTRAS \
+public:             \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define lt_EXTRAS \
+public:           \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define eq_EXTRAS \
+public:           \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define leq_EXTRAS \
+public:            \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define assign_EXTRAS \
+public:               \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
 #endif

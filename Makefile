@@ -10,7 +10,7 @@ RANLIB= gar -qs
 SRC= semant.cc semant.h cool-tree.h cool-tree.handcode.h good.cl bad.cl README
 CSRC= semant-phase.cc symtab_example.cc  handle_flags.cc  ast-lex.cc ast-parse.cc utilities.cc stringtab.cc dumptype.cc tree.cc cool-tree.cc
 LI6QSRC= semant-program.cc semant-class.cc semant-attr.cc semant-method.cc loguru.cc semant-formal.cc semant-checks.cc \
-	semant-utility.cc semant-new.cc semant-block.cc semant-typcase.cc semant-arithmetics.cc semant-const.cc
+	semant-utility.cc semant-new.cc semant-block.cc semant-typcase.cc semant-arithmetics.cc semant-const.cc semant-logics.cc semant-assign.cc
 TSRC= mycoolc mysemant cool-tree.aps
 CGEN=
 HGEN=
