@@ -150,4 +150,40 @@ public:                                   \
 	void dump_with_types(ostream &, int); \
 	[[nodiscard]] bool semant(SemantContext &ctx);
 
+#define plus_EXTRAS \
+public:             \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define sub_EXTRAS \
+public:            \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define mul_EXTRAS \
+public:            \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define divide_EXTRAS \
+public:               \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define neg_EXTRAS \
+public:            \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define comp_EXTRAS \
+public:             \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define int_const_EXTRAS \
+public:                  \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define bool_const_EXTRAS \
+public:                   \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define string_const_EXTRAS \
+public:                     \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
 #endif
