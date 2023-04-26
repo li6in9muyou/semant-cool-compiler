@@ -46,7 +46,7 @@ bool class__class::semant(SemantContext &ctx)
 
     LOG_F(INFO, "descending into features");
 
-    auto ok = false;
+    auto ok = true;
     const auto cnt = features->len();
     for (auto i = cnt - 1; i >= 0; i -= 1)
     {
