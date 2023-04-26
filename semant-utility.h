@@ -8,6 +8,9 @@ using std::ostream;
 using std::unordered_set;
 
 #include "stringtab.h"
+#include "cool-tree.h"
+
+#include "semant.h"
 
 class NoRepeatPrinter
 {
@@ -24,3 +27,5 @@ extern NoRepeatPrinter err;
 string location(const Symbol &filename, int lineno);
 
 void abort_if_not_ok(bool ok);
+
+bool set_type_if_ok(bool ok, Expression e, const Symbol &ok_type, const Symbol &fallback_type = Object);
