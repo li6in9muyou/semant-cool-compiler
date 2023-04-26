@@ -51,11 +51,22 @@ for input_cl in "$@"; do
     continue
   fi
 
-  if diff -u --color \
-    --label actual <(actual "$input_cl" | grep --invert-match "|" | sort_by_lineno) \
-    --label expected <(expected "$input_cl" | sort_by_lineno); then
-    green PASS
+  if [[ "$input_cl" == *"bad"* ]]; then
+    if diff -u --color \
+      --label actual <(actual "$input_cl" | grep --invert-match "|" | sort_by_lineno) \
+      --label expected <(expected "$input_cl" | sort_by_lineno); then
+      green PASS
+    else
+      red FAIL
+    fi
   else
-    red FAIL
+    # does not sort to preserve valid AST in diff'ing
+    if diff -u --color \
+      --label actual <(actual "$input_cl" | grep --invert-match "|") \
+      --label expected <(expected "$input_cl"); then
+      green PASS
+    else
+      red FAIL
+    fi
   fi
 done
