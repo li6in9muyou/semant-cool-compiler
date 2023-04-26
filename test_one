@@ -20,6 +20,10 @@ yellow() {
   printf "\033[0;33m%s\033[0m\n" "$1"
 }
 
+sort_by_lineno() {
+  sort -n -t ":" -k 2
+}
+
 do_make=true
 
 while getopts "q" opt; do
@@ -48,8 +52,8 @@ for input_cl in "$@"; do
   fi
 
   if diff -u --color \
-    --label actual <(actual "$input_cl" | grep --invert-match "|" | sort) \
-    --label expected <(expected "$input_cl" | sort); then
+    --label actual <(actual "$input_cl" | grep --invert-match "|" | sort_by_lineno) \
+    --label expected <(expected "$input_cl" | sort_by_lineno); then
     green PASS
   else
     red FAIL
