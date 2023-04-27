@@ -33,16 +33,16 @@ void abort_if_not_ok(bool ok)
     }
 }
 
-bool set_type_if_ok(bool ok, Expression e, const Symbol &thiz, const Symbol &that)
+bool set_type_if_ok(bool ok, Expression e, const Symbol &ok_type, const Symbol &fallback_type)
 {
     if (ok)
     {
-        e->set_type(thiz);
+        e->set_type(ok_type);
     }
     else
     {
-        LOG_F(INFO, "not ok, assumes %s", that->get_string());
-        e->set_type(that);
+        LOG_F(INFO, "not ok, assumes %s", fallback_type->get_string());
+        e->set_type(fallback_type);
     }
 
     return ok;
