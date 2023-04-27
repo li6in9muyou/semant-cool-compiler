@@ -31,7 +31,7 @@ bool class__class::semant(SemantContext &ctx)
 
     {
         LOG_SCOPE_F(INFO, "check Main class has main method");
-        if (check_symbol_is(name, Main))
+        if (check_symbol_eq(name, Main))
         {
             check_symbol_exists_in_current_scope(
                 main_meth,
@@ -125,9 +125,9 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
                 location(get_filename(), get_line_number()) +
                 "Class " + name->get_string() + " cannot inherit class " + parent->get_string() + ".\n");
         };
-        ok &= check_symbol_is_not(parent, Bool, e);
-        ok &= check_symbol_is_not(parent, Int, e);
-        ok &= check_symbol_is_not(parent, Str, e);
+        ok &= check_symbol_not_eq(parent, Bool, e);
+        ok &= check_symbol_not_eq(parent, Int, e);
+        ok &= check_symbol_not_eq(parent, Str, e);
         if (!ok)
         {
             return false;
@@ -192,7 +192,7 @@ bool class__class::check_class_in_loop(
     std::set<string> &mark)
 {
     LOG_SCOPE_F(INFO, "check inheritance loop on %s", me.name->get_string());
-    if (check_symbol_is(me.name, No_class))
+    if (check_symbol_eq(me.name, No_class))
     {
         LOG_F(INFO, "parent is No_class, return true");
         return true;

@@ -12,9 +12,9 @@ bool define_symbol_if_not_defined_already(
     tree_node *node,
     function<void()> on_error);
 
-bool check_symbol_is_not(const Symbol &s, const Symbol &bad, function<void()> on_error = noop);
+bool check_symbol_not_eq(const Symbol &thiz, const Symbol &that, function<void()> on_error = noop);
 
-bool check_symbol_is(const Symbol &s, const Symbol &good, function<void()> on_error = noop);
+bool check_symbol_eq(const Symbol &thiz, const Symbol &that, function<void()> on_error = noop);
 
 template <class T>
 bool check_symbol_exists(const Symbol &want, SymbolTable<Symbol, T> &scope, function<void()> on_error = noop)
@@ -60,4 +60,4 @@ bool check_symbol_not_exists_in_current_scope(const Symbol &forbid, SymbolTable<
     return ok;
 }
 
-bool check_both_operands_are_integer(SemantContext &ctx, Expression &e1, Expression &e2, function<void()> on_error = noop);
+bool check_operands_are_integer_after_semant(SemantContext &ctx, Expression &e1, Expression &e2, function<void()> on_error = noop);

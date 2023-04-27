@@ -8,7 +8,7 @@ bool lt_class::semant(SemantContext &ctx)
     LOG_SCOPE_F(INFO, "semant at '<' at line %d", get_line_number());
     auto ok = true;
 
-    ok &= check_both_operands_are_integer(
+    ok &= check_operands_are_integer_after_semant(
         ctx, e1, e2,
         [&]()
         {
@@ -33,17 +33,17 @@ bool eq_class::semant(SemantContext &ctx)
     const auto e2T = e2->get_type();
 
     const auto e1IsPrimitive =
-        check_symbol_is(Int, e1T) ||
-        check_symbol_is(Bool, e1T) ||
-        check_symbol_is(Str, e1T);
+        check_symbol_eq(Int, e1T) ||
+        check_symbol_eq(Bool, e1T) ||
+        check_symbol_eq(Str, e1T);
     const auto e2IsPrimitive =
-        check_symbol_is(Int, e2T) ||
-        check_symbol_is(Bool, e2T) ||
-        check_symbol_is(Str, e2T);
+        check_symbol_eq(Int, e2T) ||
+        check_symbol_eq(Bool, e2T) ||
+        check_symbol_eq(Str, e2T);
     const auto involvePrimitive = e1IsPrimitive || e2IsPrimitive;
     if (involvePrimitive)
     {
-        ok &= check_symbol_is(
+        ok &= check_symbol_eq(
             e1T, e2T,
             [&]()
             {
@@ -65,7 +65,7 @@ bool leq_class::semant(SemantContext &ctx)
     LOG_SCOPE_F(INFO, "semant at '<=' at line %d", get_line_number());
     auto ok = true;
 
-    ok &= check_both_operands_are_integer(
+    ok &= check_operands_are_integer_after_semant(
         ctx, e1, e2,
         [&]()
         {
@@ -85,7 +85,7 @@ bool comp_class::semant(SemantContext &ctx)
     auto ok = true;
 
     ok &= e1->semant(ctx);
-    ok &= check_symbol_is(
+    ok &= check_symbol_eq(
         Bool,
         e1->get_type(),
         [&]()

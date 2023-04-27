@@ -11,7 +11,7 @@ bool new__class::semant(SemantContext &ctx)
     LOG_F(INFO, "semant at 'new %s'", type_name->get_string());
     auto ok = true;
 
-    ok &= check_symbol_is(type_name, SELF_TYPE) ||
+    ok &= check_symbol_eq(type_name, SELF_TYPE) ||
           check_symbol_exists(
               type_name,
               ctx.classTable,

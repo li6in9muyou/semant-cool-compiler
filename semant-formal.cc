@@ -19,7 +19,7 @@ bool formal_class::semant(SemantContext &ctx)
             err.print(location(ctx.filename, get_line_number()) +
                       "Class " + type_decl->get_string() + " of formal parameter " + name->get_string() + " is undefined.\n");
         });
-    ok &= check_symbol_is_not(
+    ok &= check_symbol_not_eq(
         type_decl,
         SELF_TYPE,
         [&]()

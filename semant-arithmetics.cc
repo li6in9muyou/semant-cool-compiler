@@ -8,7 +8,7 @@ bool plus_class::semant(SemantContext &ctx)
     LOG_SCOPE_F(INFO, "semant at plus at line %d", get_line_number());
     auto ok = true;
 
-    ok &= check_both_operands_are_integer(
+    ok &= check_operands_are_integer_after_semant(
         ctx, e1, e2,
         [&]()
         {
@@ -27,7 +27,7 @@ bool sub_class::semant(SemantContext &ctx)
     LOG_SCOPE_F(INFO, "semant at sub at line %d", get_line_number());
     auto ok = true;
 
-    ok &= check_both_operands_are_integer(
+    ok &= check_operands_are_integer_after_semant(
         ctx, e1, e2,
         [&]()
         {
@@ -46,7 +46,7 @@ bool mul_class::semant(SemantContext &ctx)
     LOG_SCOPE_F(INFO, "semant at mul at line %d", get_line_number());
     auto ok = true;
 
-    ok &= check_both_operands_are_integer(
+    ok &= check_operands_are_integer_after_semant(
         ctx, e1, e2,
         [&]()
         {
@@ -65,7 +65,7 @@ bool divide_class::semant(SemantContext &ctx)
     LOG_SCOPE_F(INFO, "semant at divide at line %d", get_line_number());
     auto ok = true;
 
-    ok &= check_both_operands_are_integer(
+    ok &= check_operands_are_integer_after_semant(
         ctx, e1, e2,
         [&]()
         {
@@ -85,7 +85,7 @@ bool neg_class::semant(SemantContext &ctx)
     auto ok = true;
 
     ok &= e1->semant(ctx);
-    ok &= check_symbol_is(
+    ok &= check_symbol_eq(
         Int,
         e1->get_type(),
         [&]()
