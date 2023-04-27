@@ -8,7 +8,7 @@ using std::string;
 
 bool block_class::semant(SemantContext &ctx)
 {
-    LOG_F(INFO, "semant at block at line %d", get_line_number());
+    LOG_SCOPE_F(INFO, "semant at block at line %d", get_line_number());
     auto ok = true;
 
     LOG_F(INFO, "descending into body");
