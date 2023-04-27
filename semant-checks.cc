@@ -41,3 +41,17 @@ bool check_symbol_is(const Symbol &s, const Symbol &good, function<void()> on_er
 void noop()
 {
 }
+
+bool check_both_operands_are_integer(SemantContext &ctx, Expression &e1, Expression &e2, function<void()> on_error)
+{
+    auto ok = true;
+
+    ok &= e1->semant(ctx);
+    ok &= e2->semant(ctx);
+
+    const auto e1Type = e1->get_type();
+    const auto e2Type = e2->get_type();
+    ok &= (check_symbol_is(Int, e1Type, on_error) && check_symbol_is(Int, e2Type, on_error));
+
+    return ok;
+}

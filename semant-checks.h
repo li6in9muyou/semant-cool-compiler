@@ -57,3 +57,5 @@ bool check_symbol_not_exists_in_current_scope(const Symbol &forbid, SymbolTable<
     }
     return ok;
 }
+
+bool check_both_operands_are_integer(SemantContext &ctx, Expression &e1, Expression &e2, function<void()> on_error = noop);
