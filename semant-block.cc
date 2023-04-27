@@ -15,8 +15,8 @@ bool block_class::semant(SemantContext &ctx)
     for (auto i = body->first(); body->more(i); i = body->next(i))
     {
         const auto e = (Expression)body->nth(i);
-        ok = e->semant(ctx) && ok;
-        set_type_if_ok(ok, this, e->get_type(), Object);
+        ok &= e->semant(ctx);
+        set_type(e->get_type());
     }
 
     return ok;
