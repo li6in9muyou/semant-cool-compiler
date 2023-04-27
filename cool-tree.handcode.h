@@ -108,26 +108,29 @@ public:                                         \
 #define Case_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#define Expression_EXTRAS                             \
-	Symbol type;                                      \
-	Symbol get_type()                                 \
-	{                                                 \
-		return type;                                  \
-	}                                                 \
-	Expression set_type(Symbol s)                     \
-	{                                                 \
-		type = s;                                     \
-		return this;                                  \
-	}                                                 \
-	virtual void dump_with_types(ostream &, int) = 0; \
-	void dump_type(ostream &, int);                   \
-	Expression_class()                                \
-	{                                                 \
-		type = (Symbol)NULL;                          \
-	}                                                 \
-	virtual bool semant(SemantContext &ctx)           \
-	{                                                 \
-		return false;                                 \
+#include "loguru.h"
+
+#define Expression_EXTRAS                                                                                               \
+	Symbol type;                                                                                                        \
+	Symbol get_type()                                                                                                   \
+	{                                                                                                                   \
+		return type;                                                                                                    \
+	}                                                                                                                   \
+	Expression set_type(Symbol s)                                                                                       \
+	{                                                                                                                   \
+		type = s;                                                                                                       \
+		return this;                                                                                                    \
+	}                                                                                                                   \
+	virtual void dump_with_types(ostream &, int) = 0;                                                                   \
+	void dump_type(ostream &, int);                                                                                     \
+	Expression_class()                                                                                                  \
+	{                                                                                                                   \
+		type = (Symbol)NULL;                                                                                            \
+	}                                                                                                                   \
+	virtual bool semant(SemantContext &ctx)                                                                             \
+	{                                                                                                                   \
+		LOG_F(WARNING, "semant at line %d, expression class does not override semant, return true", get_line_number()); \
+		return true;                                                                                                    \
 	}
 
 #define Expression_SHARED_EXTRAS \
