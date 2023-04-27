@@ -21,5 +21,6 @@ bool new__class::semant(SemantContext &ctx)
                             "'new' used with undefined class " + type_name->get_string() + ".\n");
               });
 
+    set_type_if_ok(ok, this, type_name, Object);
     return ok;
 }

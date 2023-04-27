@@ -14,7 +14,9 @@ bool block_class::semant(SemantContext &ctx)
     LOG_F(INFO, "descending into body");
     for (auto i = body->first(); body->more(i); i = body->next(i))
     {
-        ok = ((Expression_class *)body->nth(i))->semant(ctx) && ok;
+        const auto e = (Expression)body->nth(i);
+        ok = e->semant(ctx) && ok;
+        set_type_if_ok(ok, this, e->get_type(), Object);
     }
 
     return ok;
