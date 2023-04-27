@@ -21,14 +21,14 @@ bool method_class::semant(SemantContext &ctx)
                       "Undefined return type " + return_type->get_string() + " in method " + name->get_string() + ".\n");
         });
 
-    LOG_F(INFO, "descending into formals");
+    LOG_F(INFO, "descend into formals");
     LOG_IF_F(INFO, formals->len() == 0, "no formals");
     for (auto i = formals->first(); formals->more(i); i = formals->next(i))
     {
         ok = ((formal_class *)formals->nth(i))->semant(ctx) && ok;
     }
 
-    LOG_F(INFO, "descending into expression");
+    LOG_F(INFO, "descend into expression");
     ok = expr->semant(ctx) && ok;
 
     return ok;

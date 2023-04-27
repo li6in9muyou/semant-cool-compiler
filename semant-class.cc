@@ -18,30 +18,28 @@ using std::all_of;
 
 bool class__class::semant(SemantContext &ctx)
 {
-    LOG_SCOPE_FUNCTION(INFO);
-    LOG_F(INFO, "class %s semant", name->get_string());
+    LOG_SCOPE_F(INFO, "class %s semant", name->get_string());
     LOG_F(INFO, "hierarchy hash of %s is \"%s\"", name->get_string(), ctx.familyHierarchyHash[name].c_str());
 
     auto &familyFeatureTable = ctx.programFeatureTable[name];
     ctx.familyMethodTable = &familyFeatureTable.methods;
     ctx.familyAttributeTable = &familyFeatureTable.attributes;
     LOG_F(INFO, "bind family feature table to %p", &familyFeatureTable);
+
     ctx.classTable.enterscope();
     ctx.classTable.addid(SELF_TYPE, this);
 
+    LOG_F(INFO, "check Main class has main method");
+    if (check_symbol_eq(name, Main))
     {
-        LOG_SCOPE_F(INFO, "check Main class has main method");
-        if (check_symbol_eq(name, Main))
-        {
-            check_symbol_exists_in_current_scope(
-                main_meth,
-                *ctx.familyMethodTable,
-                [&]()
-                {
-                    err.print(location(get_filename(), get_line_number()) +
-                              "No 'main' method in class Main.\n");
-                });
-        }
+        check_symbol_exists_in_current_scope(
+            main_meth,
+            *ctx.familyMethodTable,
+            [&]()
+            {
+                err.print(location(get_filename(), get_line_number()) +
+                          "No 'main' method in class Main.\n");
+            });
     }
 
     LOG_F(INFO, "descending into features");

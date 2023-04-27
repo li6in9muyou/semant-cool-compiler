@@ -153,19 +153,17 @@ void program_class::semant()
             }));
     LOG_F(INFO, "Main check passed at %s", filename->get_string());
 
+    LOG_F(INFO, "descend into class at %s", filename->get_string());
+    vector<bool> results;
+    for (auto i = classes->len() - 1; i >= 0; i -= 1)
     {
-        LOG_SCOPE_F(INFO, "descend into class at %s", filename->get_string());
-        vector<bool> results;
-        for (auto i = classes->len() - 1; i >= 0; i -= 1)
-        {
-            auto *cls = (class__class *)classes->nth(i);
-            const auto ok = cls->semant(ctx);
-            results.emplace_back(ok);
-        }
-        const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
-                               { return ok; });
-        abort_if_not_ok(ok);
+        auto *cls = (class__class *)classes->nth(i);
+        const auto ok = cls->semant(ctx);
+        results.emplace_back(ok);
     }
+    const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
+                           { return ok; });
+    abort_if_not_ok(ok);
 
     ctx.classTable.exitscope();
     LOG_F(INFO, "semant ended at %s", filename->get_string());
