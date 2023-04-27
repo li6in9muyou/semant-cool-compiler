@@ -61,3 +61,5 @@ bool check_symbol_not_exists_in_current_scope(const Symbol &forbid, SymbolTable<
 }
 
 bool check_operands_are_integer_after_semant(SemantContext &ctx, Expression &e1, Expression &e2, function<void()> on_error = noop);
+
+bool check_type_conform_to(SemantContext &ctx, const Symbol &t, const Symbol &super, function<void()> on_error = noop);

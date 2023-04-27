@@ -20,7 +20,7 @@ bool define_symbol_if_not_defined_already(
 
 bool check_symbol_not_eq(const Symbol &thiz, const Symbol &that, function<void()> on_error)
 {
-    const auto ok = !that->equal_string(thiz->get_string(), thiz->get_len());
+    const auto ok = !check_symbol_eq(thiz, that);
     if (!ok)
     {
         on_error();
@@ -30,6 +30,10 @@ bool check_symbol_not_eq(const Symbol &thiz, const Symbol &that, function<void()
 
 bool check_symbol_eq(const Symbol &thiz, const Symbol &that, function<void()> on_error)
 {
+    CHECK_F(thiz != nullptr && that != nullptr, "thiz=%s, that=%s at check symbol equal",
+            (thiz == nullptr ? "<nullptr>" : thiz->get_string()),
+            (that == nullptr ? "<nullptr>" : that->get_string()));
+
     const auto ok = that->equal_string(thiz->get_string(), thiz->get_len());
     if (!ok)
     {
@@ -53,5 +57,15 @@ bool check_operands_are_integer_after_semant(SemantContext &ctx, Expression &e1,
     const auto e2Type = e2->get_type();
     ok &= (check_symbol_eq(Int, e1Type, on_error) && check_symbol_eq(Int, e2Type, on_error));
 
+    return ok;
+}
+
+bool check_type_conform_to(SemantContext &ctx, const Symbol &t, const Symbol &super, function<void()> on_error)
+{
+    auto ok = check_symbol_eq(t, super);
+    if (!ok)
+    {
+        on_error();
+    }
     return ok;
 }
