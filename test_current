@@ -6,6 +6,6 @@ fi
 ./test_one -q "$ex"/semant/my-class*
 ./test_one -q "$ex"/semant/my-feature*bad*
 ./test_one -q "$ex"/semant/my-method*bad*
-./test_one -q "$ex"/semant/my-new
+./test_one -q "$ex"/semant/my-new*
 ./test_one -q "$ex"/semant/my-arithmetic*bad*
 ./test_one -q "$ex"/semant/my-logics*bad*
