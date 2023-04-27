@@ -43,7 +43,7 @@ using std::to_string;
         return ok;
     }
 
-    ctx.familyAttributeTable->addid(name, this);
+    ctx.familyAttributeTable->addid(name, &this->type_decl);
     return ok;
 }
 
