@@ -27,15 +27,34 @@ bool eq_class::semant(SemantContext &ctx)
     LOG_SCOPE_F(INFO, "semant at '=' at line %d", get_line_number());
     auto ok = true;
 
-    ok &= check_both_operands_are_integer(
-        ctx, e1, e2,
-        [&]()
-        {
-            err.print(location(ctx.filename, get_line_number()) +
-                      "non-Int arguments: " +
-                      e1->get_type()->get_string() + " = " +
-                      e2->get_type()->get_string() + "\n");
-        });
+    ok &= e1->semant(ctx);
+    ok &= e2->semant(ctx);
+    const auto e1T = e1->get_type();
+    const auto e2T = e2->get_type();
+
+    const auto e1IsPrimitive =
+        check_symbol_is(Int, e1T) ||
+        check_symbol_is(Bool, e1T) ||
+        check_symbol_is(Str, e1T);
+    const auto e2IsPrimitive =
+        check_symbol_is(Int, e2T) ||
+        check_symbol_is(Bool, e2T) ||
+        check_symbol_is(Str, e2T);
+    const auto involvePrimitive = e1IsPrimitive || e2IsPrimitive;
+    if (involvePrimitive)
+    {
+        ok &= check_symbol_is(
+            e1T, e2T,
+            [&]()
+            {
+                err.print(location(ctx.filename, get_line_number()) +
+                          "Illegal comparison with a basic type.\n");
+            });
+    }
+    else
+    {
+        ok &= true;
+    }
 
     set_type_if_ok(ok, this, Bool, Bool);
     return ok;
