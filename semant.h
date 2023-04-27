@@ -1,5 +1,7 @@
 #ifndef SEMANT_H_
 #define SEMANT_H_
+#include <string>
+using std::string;
 #include <vector>
 using std::vector;
 #include <unordered_map>
@@ -51,6 +53,7 @@ public:
   Symbol filename;
   unordered_map<Symbol, FeatureTable> programFeatureTable;
   SymbolTable<Symbol, class__class> classTable;
+  unordered_map<Symbol, string> familyHierarchyHash;
   SymbolTable<Symbol, method_class> *familyMethodTable;
   SymbolTable<Symbol, attr_class> *familyAttributeTable;
   SemantContext() = default;

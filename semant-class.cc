@@ -20,7 +20,7 @@ bool class__class::semant(SemantContext &ctx)
 {
     LOG_SCOPE_FUNCTION(INFO);
     LOG_F(INFO, "class %s semant", name->get_string());
-    LOG_F(INFO, "parent is %s", parent->get_string());
+    LOG_F(INFO, "hierarchy hash of %s is \"%s\"", name->get_string(), ctx.familyHierarchyHash[name].c_str());
 
     auto &familyFeatureTable = ctx.programFeatureTable[name];
     ctx.familyMethodTable = &familyFeatureTable.methods;
@@ -76,12 +76,16 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
         {
             LOG_F(INFO, "parent is No_class");
             familyFeatureTable = &ctx.programFeatureTable[name];
+            ctx.familyHierarchyHash[name] = name->get_string();
         }
         if (foundFamilyFeatureTable)
         {
             LOG_F(INFO, "family feature table is found, inherits it");
             ctx.programFeatureTable[name] = ctx.programFeatureTable[parent];
             familyFeatureTable = &ctx.programFeatureTable[name];
+            ctx.familyHierarchyHash[name] = ctx.familyHierarchyHash[parent];
+            ctx.familyHierarchyHash[name] += ",";
+            ctx.familyHierarchyHash[name] += name->get_string();
         }
 
         {
