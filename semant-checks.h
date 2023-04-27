@@ -1,3 +1,5 @@
+#pragma once
+
 #include "semant.h"
 #include <functional>
 using std::function;

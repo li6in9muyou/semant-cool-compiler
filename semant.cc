@@ -35,3 +35,18 @@ void FeatureTable::exitscope()
     attributes.exitscope();
     methods.exitscope();
 }
+
+#include "semant-arithmetics.cc"
+#include "semant-assign.cc"
+#include "semant-attr.cc"
+#include "semant-block.cc"
+#include "semant-checks.cc"
+#include "semant-class.cc"
+#include "semant-const.cc"
+#include "semant-formal.cc"
+#include "semant-logics.cc"
+#include "semant-method.cc"
+#include "semant-new.cc"
+#include "semant-program.cc"
+#include "semant-typcase.cc"
+#include "semant-utility.cc"
