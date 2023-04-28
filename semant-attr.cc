@@ -61,6 +61,10 @@ bool attr_class::semant(SemantContext &ctx)
             err.print(location(ctx.filename, get_line_number()) +
                       "Class " + type_decl->get_string() + " of attribute " + name->get_string() + " is undefined.\n");
         });
+    if (!ok)
+    {
+        return ok;
+    }
 
     ok &= init->semant(ctx);
     if (!check_symbol_eq(No_type, init->get_type()))
