@@ -47,6 +47,7 @@ void FeatureTable::exitscope()
 #include "semant-logics.cc"
 #include "semant-method.cc"
 #include "semant-new.cc"
+#include "semant-object.cc"
 #include "semant-program.cc"
 #include "semant-typcase.cc"
 #include "semant-utility.cc"
