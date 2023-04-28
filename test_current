@@ -3,9 +3,26 @@
 if ! make -j8 semant; then
     exit 1
 fi
-./test_one -q "$ex"/semant/my-class*
-./test_one -q "$ex"/semant/my-feature*bad*
-./test_one -q "$ex"/semant/my-method*bad*
-./test_one -q "$ex"/semant/my-new*
-./test_one -q "$ex"/semant/my-arithmetic*bad*
-./test_one -q "$ex"/semant/my-logics*bad*
+
+./test_one -q /class/examples/semant/my-class-cyclic-inheritance.bad.cl
+./test_one -q /class/examples/semant/my-class-duplicate.bad.cl
+./test_one -q /class/examples/semant/my-class-inherit-from-primitives.bad.cl
+./test_one -q /class/examples/semant/my-class-no-Main.bad.cl
+./test_one -q /class/examples/semant/my-class-simple-Main.cl
+./test_one -q /class/examples/semant/my-class-simple-inheritance-tree.cl
+./test_one -q /class/examples/semant/my-class-superclass-undefined.bad.cl
+./test_one -q /class/examples/semant/my-feature-Main-has-no-main.bad.cl
+./test_one -q /class/examples/semant/my-feature-attribute-dependency.bad.cl
+./test_one -q /class/examples/semant/my-feature-attribute-type-undefined.bad.cl
+./test_one -q /class/examples/semant/my-feature-duplicate-features.bad.cl
+./test_one -q /class/examples/semant/my-feature-shadow-attribute-simple.bad.cl
+./test_one -q /class/examples/semant/my-feature-shadow-attribute.bad.cl
+./test_one -q /class/examples/semant/my-method-formal-forbid-self-type.bad.cl
+./test_one -q /class/examples/semant/my-method-formal-type-undefined.bad.cl
+./test_one -q /class/examples/semant/my-method-return-type.bad.cl
+./test_one -q /class/examples/semant/my-new-simple.cl
+./test_one -q /class/examples/semant/my-new-valid-classes.bad.cl
+./test_one -q /class/examples/semant/my-arithmetic.bad.cl
+./test_one -q /class/examples/semant/my-logics.bad.cl
+./test_one -q /class/examples/semant/my-method-return-type.bad.cl
+./test_one -q /class/examples/semant/my-object-id.bad.cl
