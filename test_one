@@ -72,7 +72,7 @@ do_test() {
   fi
 }
 
-trap "rm -r passed total failed_input" EXIT
+trap "rm -f passed total failed_input" EXIT
 for input_cl in "$@"; do
   echo 1 >>total
   ((i = i % 8))
@@ -85,6 +85,9 @@ echo
 t=$(wc total -l)
 p=$(wc passed -l)
 yellow "SUMMARY: $p / $t"
-red "FAILED FILES"
-red "$(uniq failed_input)"
-echo
+
+if test -f failed_input; then
+  red "FAILED FILES"
+  red "$(uniq failed_input)"
+  echo
+fi
