@@ -4,6 +4,10 @@ if ! make -j8 semant; then
     exit 1
 fi
 
+./test_one -q /class/examples/semant/my-arithmetic.bad.cl
+./test_one -q /class/examples/semant/my-assign.bad.cl
+./test_one -q /class/examples/semant/my-block-type.bad.cl
+./test_one -q /class/examples/semant/my-case-covers-all-cases.bad.cl
 ./test_one -q /class/examples/semant/my-class-cyclic-inheritance.bad.cl
 ./test_one -q /class/examples/semant/my-class-duplicate.bad.cl
 ./test_one -q /class/examples/semant/my-class-inherit-from-primitives.bad.cl
@@ -17,12 +21,11 @@ fi
 ./test_one -q /class/examples/semant/my-feature-duplicate-features.bad.cl
 ./test_one -q /class/examples/semant/my-feature-shadow-attribute-simple.bad.cl
 ./test_one -q /class/examples/semant/my-feature-shadow-attribute.bad.cl
+./test_one -q /class/examples/semant/my-logics.bad.cl
 ./test_one -q /class/examples/semant/my-method-formal-forbid-self-type.bad.cl
 ./test_one -q /class/examples/semant/my-method-formal-type-undefined.bad.cl
 ./test_one -q /class/examples/semant/my-method-return-type.bad.cl
+./test_one -q /class/examples/semant/my-method-return-type.bad.cl
 ./test_one -q /class/examples/semant/my-new-simple.cl
 ./test_one -q /class/examples/semant/my-new-valid-classes.bad.cl
-./test_one -q /class/examples/semant/my-arithmetic.bad.cl
-./test_one -q /class/examples/semant/my-logics.bad.cl
-./test_one -q /class/examples/semant/my-method-return-type.bad.cl
 ./test_one -q /class/examples/semant/my-object-id.bad.cl
