@@ -65,15 +65,16 @@ bool attr_class::semant(SemantContext &ctx)
     ok &= init->semant(ctx);
     if (!check_symbol_eq(No_type, init->get_type()))
     {
-        ok &= check_type_conform_to(
-            ctx, init->get_type(), type_decl,
-            [&]()
-            {
-                err.print(location(ctx.filename, get_line_number()) +
-                          "Inferred type " + init->get_type()->get_string() +
-                          " of initialization of attribute " + name->get_string() +
-                          " does not conform to declared type " + type_decl->get_string() + ".\n");
-            });
+        ok &= ok &&
+              check_type_conform_to(
+                  ctx, init->get_type(), type_decl,
+                  [&]()
+                  {
+                      err.print(location(ctx.filename, get_line_number()) +
+                                "Inferred type " + init->get_type()->get_string() +
+                                " of initialization of attribute " + name->get_string() +
+                                " does not conform to declared type " + type_decl->get_string() + ".\n");
+                  });
     }
 
     return ok;

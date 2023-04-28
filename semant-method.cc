@@ -33,7 +33,17 @@ bool method_class::semant(SemantContext &ctx)
 
     LOG_F(INFO, "descend into expression");
     ok = expr->semant(ctx) && ok;
-
+    ok = ok &&
+         check_type_conform_to(
+             ctx, expr->get_type(), return_type,
+             [&]()
+             {
+                 err.print(location(ctx.filename, get_line_number()) +
+                           "Inferred return type " + expr->get_type()->get_string() +
+                           " of method " + name->get_string() +
+                           " does not conform to declared return type " +
+                           return_type->get_string() + ".\n");
+             });
     ctx.typeEnv->exitscope();
     return ok;
 }
