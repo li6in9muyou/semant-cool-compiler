@@ -9,6 +9,14 @@ bool assign_class::semant(SemantContext &ctx)
 
     auto ok = true;
 
+    ok &= check_symbol_not_eq(
+        name, self,
+        [&]()
+        {
+            err.print(location(ctx.filename, get_line_number()) +
+                      "Cannot assign to 'self'.\n");
+        });
+
     ok &= expr->semant(ctx);
     if (check_symbol_eq(No_type, expr->get_type()))
     {
@@ -17,15 +25,17 @@ bool assign_class::semant(SemantContext &ctx)
     }
 
     const auto type_decl = *ctx.typeEnv->lookup(name);
-    ok &= check_type_conform_to(
-        ctx, expr->get_type(), type_decl,
-        [&]()
-        {
-            err.print(location(ctx.filename, get_line_number()) +
-                      "Type " + expr->get_type()->get_string() +
-                      " of assigned expression does not conform to declared type " + type_decl->get_string() +
-                      " of identifier " + name->get_string() + ".\n");
-        });
+    ok &= set_type_if_ok(
+        check_type_conform_to(
+            ctx, expr->get_type(), type_decl,
+            [&]()
+            {
+                err.print(location(ctx.filename, get_line_number()) +
+                          "Type " + expr->get_type()->get_string() +
+                          " of assigned expression does not conform to declared type " + type_decl->get_string() +
+                          " of identifier " + name->get_string() + ".\n");
+            }),
+        this, type_decl, Object);
 
     return ok;
 }
