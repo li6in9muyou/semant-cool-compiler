@@ -28,6 +28,7 @@ bool formal_class::semant(SemantContext &ctx)
                       "Formal parameter " + name->get_string() + " cannot have type SELF_TYPE.\n");
         });
 
+    ctx.typeEnv->addid(name, &type_decl);
     return ok;
 }
 

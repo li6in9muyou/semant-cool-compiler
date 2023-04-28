@@ -29,6 +29,10 @@ bool class__class::semant(SemantContext &ctx)
     ctx.classTable.enterscope();
     ctx.classTable.addid(SELF_TYPE, this);
 
+    ctx.typeEnv->enterscope();
+    ctx.typeEnv->addid(SELF_TYPE, &name);
+    ctx.typeEnv->addid(self, &SELF_TYPE);
+
     LOG_F(INFO, "check Main class has main method");
     if (check_symbol_eq(name, Main))
     {
@@ -52,6 +56,7 @@ bool class__class::semant(SemantContext &ctx)
     }
 
     ctx.classTable.exitscope();
+    ctx.typeEnv->exitscope();
     return ok;
 }
 
