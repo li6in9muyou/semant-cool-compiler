@@ -16,7 +16,7 @@ bool assign_class::semant(SemantContext &ctx)
         return ok;
     }
 
-    const auto type_decl = *ctx.familyAttributeTable->lookup(name);
+    const auto type_decl = *ctx.typeEnv->lookup(name);
     ok &= check_type_conform_to(
         ctx, expr->get_type(), type_decl,
         [&]()

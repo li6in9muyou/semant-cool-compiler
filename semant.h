@@ -55,7 +55,7 @@ public:
   SymbolTable<Symbol, class__class> classTable;
   unordered_map<Symbol, string> familyHierarchyHash;
   SymbolTable<Symbol, method_class> *familyMethodTable;
-  SymbolTable<Symbol, Symbol> *familyAttributeTable;
+  SymbolTable<Symbol, Symbol> *typeEnv;
   SemantContext() = default;
 };
 

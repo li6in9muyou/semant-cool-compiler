@@ -11,13 +11,13 @@ using std::to_string;
 {
     LOG_F(INFO, "attribute register symbol at attribute %s", name->get_string());
 
-    CHECK_NOTNULL_F(ctx.familyAttributeTable, "ctx.familyAttributeTable is nullptr");
+    CHECK_NOTNULL_F(ctx.typeEnv, "ctx.typeEnv is nullptr");
 
     auto ok = true;
 
     ok &= check_symbol_not_exists_in_current_scope(
         name,
-        *ctx.familyAttributeTable,
+        *ctx.typeEnv,
         [&]()
         {
             err.print(location(ctx.filename, get_line_number()) +
@@ -31,7 +31,7 @@ using std::to_string;
 
     ok &= check_symbol_not_exists(
         name,
-        *ctx.familyAttributeTable,
+        *ctx.typeEnv,
         [&]()
         {
             err.print(location(ctx.filename, get_line_number()) +
@@ -43,7 +43,7 @@ using std::to_string;
         return ok;
     }
 
-    ctx.familyAttributeTable->addid(name, &this->type_decl);
+    ctx.typeEnv->addid(name, &this->type_decl);
     return ok;
 }
 

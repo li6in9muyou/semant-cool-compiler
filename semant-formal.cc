@@ -30,3 +30,9 @@ bool formal_class::semant(SemantContext &ctx)
 
     return ok;
 }
+
+bool formal_class::register_symbol(SemantContext &ctx)
+{
+    LOG_F(INFO, "register symbol at formal %s using scope %p", name->get_string(), ctx.typeEnv);
+    return true;
+}

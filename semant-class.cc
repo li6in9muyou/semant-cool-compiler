@@ -23,7 +23,7 @@ bool class__class::semant(SemantContext &ctx)
 
     auto &familyFeatureTable = ctx.programFeatureTable[name];
     ctx.familyMethodTable = &familyFeatureTable.methods;
-    ctx.familyAttributeTable = &familyFeatureTable.attributes;
+    ctx.typeEnv = &familyFeatureTable.attributes;
     LOG_F(INFO, "bind family feature table to %p", &familyFeatureTable);
 
     ctx.classTable.enterscope();
@@ -90,7 +90,7 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
             LOG_SCOPE_F(INFO, "register my features in %p at %s", familyFeatureTable, name->get_string());
             familyFeatureTable->enterscope();
             ctx.familyMethodTable = &familyFeatureTable->methods;
-            ctx.familyAttributeTable = &familyFeatureTable->attributes;
+            ctx.typeEnv = &familyFeatureTable->attributes;
 
             vector<bool> results;
             for (auto i = features->first(); features->more(i); i = features->next(i))

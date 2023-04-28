@@ -101,9 +101,10 @@ public:                                                  \
 #define Formal_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#define formal_EXTRAS                           \
-public:                                         \
-	[[nodiscard]] bool semant(SemantContext &); \
+#define formal_EXTRAS                                    \
+public:                                                  \
+	[[nodiscard]] bool semant(SemantContext &);          \
+	[[nodiscard]] bool register_symbol(SemantContext &); \
 	void dump_with_types(ostream &, int);
 
 #define Case_EXTRAS \

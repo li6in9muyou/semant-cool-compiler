@@ -21,6 +21,9 @@ bool method_class::semant(SemantContext &ctx)
                       "Undefined return type " + return_type->get_string() + " in method " + name->get_string() + ".\n");
         });
 
+    LOG_F(INFO, "enter scope on %p", ctx.typeEnv);
+    ctx.typeEnv->enterscope();
+
     LOG_F(INFO, "descend into formals");
     LOG_IF_F(INFO, formals->len() == 0, "no formals");
     for (auto i = formals->first(); formals->more(i); i = formals->next(i))
@@ -31,6 +34,7 @@ bool method_class::semant(SemantContext &ctx)
     LOG_F(INFO, "descend into expression");
     ok = expr->semant(ctx) && ok;
 
+    ctx.typeEnv->exitscope();
     return ok;
 }
 
