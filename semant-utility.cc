@@ -1,3 +1,8 @@
+#include <iterator>
+using std::next;
+using std::prev;
+#include <algorithm>
+using std::mismatch;
 #include "loguru.h"
 
 #include "semant-utility.h"
@@ -46,4 +51,38 @@ bool set_type_if_ok(bool ok, Expression e, const Symbol &ok_type, const Symbol &
     }
 
     return ok;
+}
+
+Symbol least_upper_bound(SemantContext &ctx, const Symbol &thiz, const Symbol &that)
+{
+    const auto &thizFamily = ctx.familyHierarchyHash[thiz];
+    const auto &thatFamily = ctx.familyHierarchyHash[that];
+    LOG_F(INFO, "at least upper bound of %s and %s",
+          dump_symbols(thizFamily).c_str(), dump_symbols(thatFamily).c_str());
+    const auto ans = mismatch(
+        thizFamily.cbegin(), thizFamily.cend(), thatFamily.cbegin(), thatFamily.cend(),
+        [](const auto &a, const auto &b)
+        {
+            return check_symbol_eq(a, b);
+        });
+    return *prev(ans.first);
+}
+
+string dump_symbols(const vector<Symbol> &symbols)
+{
+    if (symbols.empty())
+    {
+        LOG_F(WARNING, "symbols vector is empty");
+        return "<empty vector>";
+    }
+
+    auto it = symbols.cbegin();
+    string text = (*it++)->get_string();
+
+    while (it != symbols.cend())
+    {
+        text.append(",");
+        text.append((*it++)->get_string());
+    }
+    return text;
 }

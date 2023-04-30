@@ -77,13 +77,14 @@ const Symbol &translate_SELF_TYPE(SymbolTable<Symbol, Symbol> *env, const Symbol
 
 bool check_type_conform_to(SemantContext &ctx, const Symbol &t, const Symbol &super, function<void()> on_error)
 {
-    LOG_F(INFO, "check type t=%s conform to super=%s", t->get_string(), super->get_string());
+    const auto tType = translate_SELF_TYPE(ctx.typeEnv, t);
+    const auto superType = translate_SELF_TYPE(ctx.typeEnv, super);
 
-    const auto tType=translate_SELF_TYPE(ctx.typeEnv, t);
-    const auto superType=translate_SELF_TYPE(ctx.typeEnv, super);
+    LOG_F(INFO, "at check type conform %s <= %s",
+          dump_symbols(ctx.familyHierarchyHash[tType]).c_str(),
+          dump_symbols(ctx.familyHierarchyHash[superType]).c_str());
 
-    auto ok = true;
-    ok &= check_symbol_eq(tType, superType);
+    auto ok = check_symbol_eq(tType, superType) || check_symbol_eq(least_upper_bound(ctx, tType, superType), super);
     if (!ok)
     {
         on_error();

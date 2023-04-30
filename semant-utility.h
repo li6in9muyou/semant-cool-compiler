@@ -31,3 +31,9 @@ string location(const Symbol &filename, int lineno);
 void abort_if_not_ok(bool ok);
 
 bool set_type_if_ok(bool ok, Expression e, const Symbol &ok_type, const Symbol &fallback_type = Object);
+
+#define LOC location(ctx.filename, get_line_number())
+
+Symbol least_upper_bound(SemantContext &ctx, const Symbol &thiz, const Symbol &that);
+
+string dump_symbols(const vector<Symbol> &symbols);
