@@ -270,9 +270,15 @@ void program_class::install_basic_classes(SemantContext &ctx)
                                           no_expr()))),
                filename);
 
-    ctx.classTable.addid(Str, (class__class *)Str_class);
-    ctx.classTable.addid(Int, (class__class *)Int_class);
-    ctx.classTable.addid(Bool, (class__class *)Bool_class);
-    ctx.classTable.addid(IO, (class__class *)IO_class);
-    ctx.classTable.addid(Object, (class__class *)Object_class);
+    const auto prepare_builtin_classes = [&](Class_ &c)
+    {
+        auto *cls = (class__class *)c;
+        auto _ = cls->register_symbol(ctx);
+        _ = cls->create_family_feature_table(ctx);
+    };
+    prepare_builtin_classes(Object_class);
+    prepare_builtin_classes(Str_class);
+    prepare_builtin_classes(Int_class);
+    prepare_builtin_classes(Bool_class);
+    prepare_builtin_classes(IO_class);
 }
