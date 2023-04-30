@@ -31,3 +31,4 @@ fi
     /class/examples/semant/my-new-valid-classes.bad.cl \
     /class/examples/semant/my-object-id.bad.cl \
     /class/examples/semant/my-conditional.bad.cl \
+    /class/examples/semant/my-method-formal-bind-id.cl \
