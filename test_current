@@ -32,3 +32,5 @@ fi
     /class/examples/semant/my-object-id.bad.cl \
     /class/examples/semant/my-conditional.bad.cl \
     /class/examples/semant/my-method-formal-bind-id.cl \
+    /class/examples/semant/my-loop.cl \
+    /class/examples/semant/my-type-annotation.cl

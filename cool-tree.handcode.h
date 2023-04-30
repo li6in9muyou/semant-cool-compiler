@@ -218,4 +218,8 @@ public:               \
 public:             \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
+#define loop_EXTRAS \
+public:             \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
 #endif
