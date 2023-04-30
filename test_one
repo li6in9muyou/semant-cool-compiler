@@ -45,16 +45,16 @@ esac
 
 on_pass() {
   echo -n 💚
-  echo 1 >>passed
+  echo 1 >>$passed
 }
 
 on_fail() {
   echo -n ❌
-  echo "$input_cl" >>failed_input
+  echo "$input_cl" >>$failed_input
 }
 
 do_test() {
-  echo 1 >>total
+  echo 1 >>$total
   input_cl=$1
   if [[ ! -f "$input_cl" ]]; then
     red "FILE NOT FOUND $input_cl"
@@ -81,8 +81,12 @@ do_test() {
   fi
 }
 
-touch passed total failed_input
-trap "rm -f passed total failed_input" EXIT
+mkdir -p /var/run/li6q
+passed=/var/run/li6q/passed
+total=/var/run/li6q/total
+failed_input=/var/run/li6q/failed_input
+touch $passed $total $failed_input
+trap 'rm -f $passed $total $failed_input' EXIT
 for input_cl in "$@"; do
   ((i = i % 8))
   ((i++ == 0)) && wait
@@ -91,15 +95,15 @@ done
 wait
 
 echo
-t=$(wc -l <total)
-p=$(wc -l <passed)
-f=$(wc -l <failed_input)
+t=$(wc -l <$total)
+p=$(wc -l <$passed)
+f=$(wc -l <$failed_input)
 if [[ "$t" -gt 4 ]]; then
   yellow "SUMMARY: $p passed / $t total"
 
   if [[ "$f" -gt 0 ]]; then
     red "FAILED FILES"
-    red "$(uniq failed_input)"
+    red "$(uniq $failed_input)"
     echo
   fi
 fi
