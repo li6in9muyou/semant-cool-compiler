@@ -214,4 +214,8 @@ public:               \
 public:               \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
+#define cond_EXTRAS \
+public:             \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
 #endif

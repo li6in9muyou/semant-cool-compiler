@@ -42,6 +42,7 @@ void FeatureTable::exitscope()
 #include "semant-block.cc"
 #include "semant-checks.cc"
 #include "semant-class.cc"
+#include "semant-conditional.cc"
 #include "semant-const.cc"
 #include "semant-formal.cc"
 #include "semant-logics.cc"
