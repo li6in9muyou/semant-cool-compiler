@@ -19,15 +19,20 @@ using std::all_of;
 bool class__class::semant(SemantContext &ctx)
 {
     LOG_SCOPE_F(INFO, "class %s semant", name->get_string());
-    LOG_F(INFO, "hierarchy hash of %s is \"%s\"", name->get_string(), ctx.familyHierarchyHash[name].c_str());
+    LOG_F(INFO, "hierarchy hash of %s is \"%s\"",
+          name->get_string(), dump_symbols(ctx.familyHierarchyHash[name]).c_str());
 
     auto &familyFeatureTable = ctx.programFeatureTable[name];
     ctx.familyMethodTable = &familyFeatureTable.methods;
-    ctx.familyAttributeTable = &familyFeatureTable.attributes;
+    ctx.typeEnv = &familyFeatureTable.attributes;
     LOG_F(INFO, "bind family feature table to %p", &familyFeatureTable);
 
     ctx.classTable.enterscope();
     ctx.classTable.addid(SELF_TYPE, this);
+
+    ctx.typeEnv->enterscope();
+    ctx.typeEnv->addid(SELF_TYPE, &name);
+    ctx.typeEnv->addid(self, &SELF_TYPE);
 
     LOG_F(INFO, "check Main class has main method");
     if (check_symbol_eq(name, Main))
@@ -52,61 +57,25 @@ bool class__class::semant(SemantContext &ctx)
     }
 
     ctx.classTable.exitscope();
+    ctx.typeEnv->exitscope();
     return ok;
 }
 
 bool class__class::create_family_feature_table(SemantContext &ctx)
 {
-    LOG_F(INFO, "create family feature table at %s", name->get_string());
+    LOG_SCOPE_F(INFO, "create family feature table at %s", name->get_string());
     const auto alreadyCreated = ctx.programFeatureTable.find(name) != ctx.programFeatureTable.end();
-    const auto foundFamilyFeatureTable = ctx.programFeatureTable.find(parent) != ctx.programFeatureTable.end();
-    const auto parentIsNoClass = parent->equal_string(No_class->get_string(), No_class->get_len());
-
     if (alreadyCreated)
     {
         LOG_F(INFO, "created by recursion started by derived class, return");
         return true;
     }
-    if (parentIsNoClass || foundFamilyFeatureTable)
+
+    if (check_symbol_not_eq(Object, name))
     {
-        FeatureTable *familyFeatureTable;
-        if (parentIsNoClass)
-        {
-            LOG_F(INFO, "parent is No_class");
-            familyFeatureTable = &ctx.programFeatureTable[name];
-            ctx.familyHierarchyHash[name] = name->get_string();
-        }
-        if (foundFamilyFeatureTable)
-        {
-            LOG_F(INFO, "family feature table is found, inherits it");
-            ctx.programFeatureTable[name] = ctx.programFeatureTable[parent];
-            familyFeatureTable = &ctx.programFeatureTable[name];
-            ctx.familyHierarchyHash[name] = ctx.familyHierarchyHash[parent];
-            ctx.familyHierarchyHash[name] += ",";
-            ctx.familyHierarchyHash[name] += name->get_string();
-        }
-
-        {
-            LOG_SCOPE_F(INFO, "register my features in %p at %s", familyFeatureTable, name->get_string());
-            familyFeatureTable->enterscope();
-            ctx.familyMethodTable = &familyFeatureTable->methods;
-            ctx.familyAttributeTable = &familyFeatureTable->attributes;
-
-            vector<bool> results;
-            for (auto i = features->first(); features->more(i); i = features->next(i))
-            {
-                results.emplace_back(features->nth(i)->register_symbol(ctx));
-            }
-            return all_of(results.cbegin(), results.cend(), [](bool ok)
-                          { return ok; });
-        }
-    }
-
-    {
-        auto ok = true;
-
+        auto superclassOk = true;
         LOG_F(INFO, "check superclass is defined");
-        ok &= check_symbol_exists(
+        superclassOk &= check_symbol_exists(
             parent,
             ctx.classTable,
             [&]()
@@ -115,7 +84,7 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
                     location(get_filename(), get_line_number()) +
                     "Class " + name->get_string() + " inherits from an undefined class " + parent->get_string() + ".\n");
             });
-        if (!ok)
+        if (!superclassOk)
         {
             return false;
         }
@@ -127,10 +96,10 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
                 location(get_filename(), get_line_number()) +
                 "Class " + name->get_string() + " cannot inherit class " + parent->get_string() + ".\n");
         };
-        ok &= check_symbol_not_eq(parent, Bool, e);
-        ok &= check_symbol_not_eq(parent, Int, e);
-        ok &= check_symbol_not_eq(parent, Str, e);
-        if (!ok)
+        superclassOk &= check_symbol_not_eq(parent, Bool, e);
+        superclassOk &= check_symbol_not_eq(parent, Int, e);
+        superclassOk &= check_symbol_not_eq(parent, Str, e);
+        if (!superclassOk)
         {
             return false;
         }
@@ -143,6 +112,42 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
                 location(get_filename(), get_line_number()) +
                 "Class " + name->get_string() + ", or an ancestor of " + name->get_string() + ", is involved in an inheritance cycle.\n");
             return false;
+        }
+    }
+
+    const auto foundFamilyFeatureTable = ctx.programFeatureTable.find(parent) != ctx.programFeatureTable.end();
+    const auto parentIsNoClass = parent->equal_string(No_class->get_string(), No_class->get_len());
+    if (parentIsNoClass || foundFamilyFeatureTable)
+    {
+        FeatureTable *familyFeatureTable;
+        if (parentIsNoClass)
+        {
+            LOG_F(INFO, "parent is No_class, do nothing");
+        }
+        if (foundFamilyFeatureTable)
+        {
+            LOG_F(INFO, "family feature table and hierarchy hash are found, inherit");
+            ctx.programFeatureTable[name] = ctx.programFeatureTable[parent];
+            ctx.familyHierarchyHash[name] = ctx.familyHierarchyHash[parent];
+        }
+        familyFeatureTable = &ctx.programFeatureTable[name];
+        ctx.familyHierarchyHash[name].push_back(name);
+
+        {
+            LOG_SCOPE_F(INFO, "register my features in %p at %s", familyFeatureTable, name->get_string());
+            LOG_F(INFO, "family hierarchy hash is %s", dump_symbols(ctx.familyHierarchyHash[name]).c_str());
+
+            familyFeatureTable->enterscope();
+            ctx.familyMethodTable = &familyFeatureTable->methods;
+            ctx.typeEnv = &familyFeatureTable->attributes;
+
+            vector<bool> results;
+            for (auto i = features->first(); features->more(i); i = features->next(i))
+            {
+                results.emplace_back(features->nth(i)->register_symbol(ctx));
+            }
+            return all_of(results.cbegin(), results.cend(), [](bool ok)
+                          { return ok; });
         }
     }
 
@@ -169,14 +174,12 @@ bool class__class::register_symbol(SemantContext &ctx)
         ctx.classTable,
         [&]()
         {
-            LOG_F(INFO, "it is redefined");
             err.print(
                 location(get_filename(), get_line_number()) +
                 "Class " + name->get_string() + " was previously defined.\n");
         });
     if (ok)
     {
-        LOG_F(INFO, "add new class");
         ctx.classTable.addid(name, this);
     }
 

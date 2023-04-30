@@ -43,30 +43,67 @@ true)
   ;;
 esac
 
-for input_cl in "$@"; do
-  echo
-  yellow "$input_cl"
+on_pass() {
+  echo -n 💚
+  echo 1 >>$passed
+}
+
+on_fail() {
+  echo -n ❌
+  echo "$input_cl" >>$failed_input
+}
+
+do_test() {
+  echo 1 >>$total
+  input_cl=$1
   if [[ ! -f "$input_cl" ]]; then
-    red "FILE NOT FOUND"
-    continue
+    red "FILE NOT FOUND $input_cl"
+    return
   fi
 
   if [[ "$input_cl" == *"bad"* ]]; then
     if diff -u --color \
       --label actual <(actual "$input_cl" | grep --invert-match "|" | sort_by_lineno) \
       --label expected <(expected "$input_cl" | sort_by_lineno); then
-      green PASS
+      on_pass
     else
-      red FAIL
+      on_fail
     fi
   else
     # does not sort to preserve valid AST in diff'ing
     if diff -u --color \
       --label actual <(actual "$input_cl" | grep --invert-match "|") \
       --label expected <(expected "$input_cl"); then
-      green PASS
+      on_pass
     else
-      red FAIL
+      on_fail
     fi
   fi
+}
+
+mkdir -p /var/run/li6q
+passed=/var/run/li6q/passed
+total=/var/run/li6q/total
+failed_input=/var/run/li6q/failed_input
+touch $passed $total $failed_input
+trap 'rm -f $passed $total $failed_input' EXIT
+for input_cl in "$@"; do
+  ((i = i % 8))
+  ((i++ == 0)) && wait
+  do_test "$input_cl" &
 done
+wait
+
+echo
+t=$(wc -l <$total)
+p=$(wc -l <$passed)
+f=$(wc -l <$failed_input)
+if [[ "$t" -gt 4 ]]; then
+  yellow "SUMMARY: $p passed / $t total"
+
+  if [[ "$f" -gt 0 ]]; then
+    red "FAILED FILES"
+    red "$(uniq $failed_input)"
+    echo
+  fi
+fi

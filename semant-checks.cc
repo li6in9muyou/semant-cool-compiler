@@ -60,9 +60,31 @@ bool check_operands_are_integer_after_semant(SemantContext &ctx, Expression &e1,
     return ok;
 }
 
+const Symbol &translate_SELF_TYPE(SymbolTable<Symbol, Symbol> *env, const Symbol &t)
+{
+    if (check_symbol_eq(t, SELF_TYPE))
+    {
+        const auto p = env->lookup(SELF_TYPE);
+        CHECK_NOTNULL_F(p, "SELF_TYPE is not in env %p", env);
+        LOG_F(INFO, "translated to %s", (*p)->get_string());
+        return *p;
+    }
+    else
+    {
+        return t;
+    }
+}
+
 bool check_type_conform_to(SemantContext &ctx, const Symbol &t, const Symbol &super, function<void()> on_error)
 {
-    auto ok = check_symbol_eq(t, super);
+    const auto tType = translate_SELF_TYPE(ctx.typeEnv, t);
+    const auto superType = translate_SELF_TYPE(ctx.typeEnv, super);
+
+    LOG_F(INFO, "at check type conform %s <= %s",
+          dump_symbols(ctx.familyHierarchyHash[tType]).c_str(),
+          dump_symbols(ctx.familyHierarchyHash[superType]).c_str());
+
+    auto ok = check_symbol_eq(tType, superType) || check_symbol_eq(least_upper_bound(ctx, tType, superType), super);
     if (!ok)
     {
         on_error();

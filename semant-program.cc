@@ -112,35 +112,29 @@ void program_class::semant()
 
     ctx.classTable.enterscope();
     {
-        LOG_SCOPE_F(INFO, "registering user-defined classes and creating family feature table at %s", filename->get_string());
-
+        vector<bool> results;
+        for (auto i = classes->first(); classes->more(i); i = classes->next(i))
         {
-            vector<bool> results;
-            LOG_SCOPE_F(INFO, "class register symbol at %s", filename->get_string());
-            for (auto i = classes->first(); classes->more(i); i = classes->next(i))
-            {
-                auto *cls = (class__class *)classes->nth(i);
-                const auto ok = cls->register_symbol(ctx);
-                results.emplace_back(ok);
-            }
-            const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
-                                   { return ok; });
-            abort_if_not_ok(ok);
+            auto *cls = (class__class *)classes->nth(i);
+            const auto ok = cls->register_symbol(ctx);
+            results.emplace_back(ok);
         }
+        const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
+                               { return ok; });
+        abort_if_not_ok(ok);
+    }
 
+    {
+        vector<bool> results;
+        for (auto i = classes->first(); classes->more(i); i = classes->next(i))
         {
-            vector<bool> results;
-            LOG_SCOPE_F(INFO, "class create family feature table at %s", filename->get_string());
-            for (auto i = classes->first(); classes->more(i); i = classes->next(i))
-            {
-                auto *cls = (class__class *)classes->nth(i);
-                const auto ok = cls->create_family_feature_table(ctx);
-                results.emplace_back(ok);
-            }
-            const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
-                                   { return ok; });
-            abort_if_not_ok(ok);
+            auto *cls = (class__class *)classes->nth(i);
+            const auto ok = cls->create_family_feature_table(ctx);
+            results.emplace_back(ok);
         }
+        const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
+                               { return ok; });
+        abort_if_not_ok(ok);
     }
 
     abort_if_not_ok(
@@ -270,9 +264,15 @@ void program_class::install_basic_classes(SemantContext &ctx)
                                           no_expr()))),
                filename);
 
-    ctx.classTable.addid(Str, (class__class *)Str_class);
-    ctx.classTable.addid(Int, (class__class *)Int_class);
-    ctx.classTable.addid(Bool, (class__class *)Bool_class);
-    ctx.classTable.addid(IO, (class__class *)IO_class);
-    ctx.classTable.addid(Object, (class__class *)Object_class);
+    const auto prepare_builtin_classes = [&](Class_ &c)
+    {
+        auto *cls = (class__class *)c;
+        auto _ = cls->register_symbol(ctx);
+        _ = cls->create_family_feature_table(ctx);
+    };
+    prepare_builtin_classes(Object_class);
+    prepare_builtin_classes(Str_class);
+    prepare_builtin_classes(Int_class);
+    prepare_builtin_classes(Bool_class);
+    prepare_builtin_classes(IO_class);
 }

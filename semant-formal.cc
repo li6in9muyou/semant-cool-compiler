@@ -28,5 +28,12 @@ bool formal_class::semant(SemantContext &ctx)
                       "Formal parameter " + name->get_string() + " cannot have type SELF_TYPE.\n");
         });
 
+    ctx.typeEnv->addid(name, &type_decl);
     return ok;
+}
+
+bool formal_class::register_symbol(SemantContext &ctx)
+{
+    LOG_F(INFO, "register symbol at formal %s using scope %p", name->get_string(), ctx.typeEnv);
+    return true;
 }

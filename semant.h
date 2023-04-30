@@ -53,9 +53,9 @@ public:
   Symbol filename;
   unordered_map<Symbol, FeatureTable> programFeatureTable;
   SymbolTable<Symbol, class__class> classTable;
-  unordered_map<Symbol, string> familyHierarchyHash;
+  unordered_map<Symbol, vector<Symbol>> familyHierarchyHash;
   SymbolTable<Symbol, method_class> *familyMethodTable;
-  SymbolTable<Symbol, Symbol> *familyAttributeTable;
+  SymbolTable<Symbol, Symbol> *typeEnv;
   SemantContext() = default;
 };
 
