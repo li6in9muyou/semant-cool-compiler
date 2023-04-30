@@ -63,7 +63,7 @@ bool class__class::semant(SemantContext &ctx)
 
 bool class__class::create_family_feature_table(SemantContext &ctx)
 {
-    LOG_F(INFO, "create family feature table at %s", name->get_string());
+    LOG_SCOPE_F(INFO, "create family feature table at %s", name->get_string());
     const auto alreadyCreated = ctx.programFeatureTable.find(name) != ctx.programFeatureTable.end();
     if (alreadyCreated)
     {
@@ -174,14 +174,12 @@ bool class__class::register_symbol(SemantContext &ctx)
         ctx.classTable,
         [&]()
         {
-            LOG_F(INFO, "it is redefined");
             err.print(
                 location(get_filename(), get_line_number()) +
                 "Class " + name->get_string() + " was previously defined.\n");
         });
     if (ok)
     {
-        LOG_F(INFO, "add new class");
         ctx.classTable.addid(name, this);
     }
 
