@@ -134,8 +134,8 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
         ctx.familyHierarchyHash[name].push_back(name);
 
         {
-            LOG_SCOPE_F(INFO, "register my features in %p at %s", familyFeatureTable, name->get_string());
-            LOG_F(INFO, "family hierarchy hash is %s", dump_symbols(ctx.familyHierarchyHash[name]).c_str());
+            LOG_SCOPE_F(INFO, "register my features in %p at %s",
+                        familyFeatureTable, dump_symbols(ctx.familyHierarchyHash[name]).c_str());
 
             familyFeatureTable->enterscope();
             ctx.familyMethodTable = &familyFeatureTable->methods;
