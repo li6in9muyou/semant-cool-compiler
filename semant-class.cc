@@ -34,10 +34,12 @@ bool class__class::semant(SemantContext &ctx)
     ctx.typeEnv->addid(SELF_TYPE, &name);
     ctx.typeEnv->addid(self, &SELF_TYPE);
 
+    auto ok = true;
+
     LOG_F(INFO, "check Main class has main method");
     if (check_symbol_eq(name, Main))
     {
-        check_symbol_exists_in_current_scope(
+        ok &= check_symbol_exists_in_current_scope(
             main_meth,
             *ctx.familyMethodTable,
             [&]()
@@ -48,8 +50,6 @@ bool class__class::semant(SemantContext &ctx)
     }
 
     LOG_F(INFO, "descending into features");
-
-    auto ok = true;
     const auto cnt = features->len();
     for (auto i = cnt - 1; i >= 0; i -= 1)
     {
