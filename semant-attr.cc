@@ -70,10 +70,10 @@ bool attr_class::semant(SemantContext &ctx)
                   ctx, init->get_type(), type_decl,
                   [&]()
                   {
-                      err.print(location(ctx.filename, get_line_number()) +
-                                "Inferred type " + init->get_type()->get_string() +
-                                " of initialization of attribute " + name->get_string() +
-                                " does not conform to declared type " + type_decl->get_string() + ".\n");
+                      err.print(location(ctx.filename, get_line_number()) + "Inferred type " +
+                                init->get_type()->get_string() + " of initialization of attribute " +
+                                name->get_string() + " does not conform to declared type " +
+                                type_decl->get_string() + ".\n");
                   });
     }
 
