@@ -1,3 +1,6 @@
+#include "loguru.h"
+
+#include "semant-utility.h"
 #include "semant-checks.h"
 
 bool define_symbol_if_not_defined_already(
@@ -58,21 +61,6 @@ bool check_operands_are_integer_after_semant(SemantContext &ctx, Expression &e1,
     ok &= (check_symbol_eq(Int, e1Type, on_error) && check_symbol_eq(Int, e2Type, on_error));
 
     return ok;
-}
-
-const Symbol &translate_SELF_TYPE(SymbolTable<Symbol, Symbol> *env, const Symbol &t)
-{
-    if (check_symbol_eq(t, SELF_TYPE))
-    {
-        const auto p = env->lookup(SELF_TYPE);
-        CHECK_NOTNULL_F(p, "SELF_TYPE is not in env %p", env);
-        LOG_F(INFO, "translated to %s", (*p)->get_string());
-        return *p;
-    }
-    else
-    {
-        return t;
-    }
 }
 
 bool check_type_conform_to(SemantContext &ctx, const Symbol &t, const Symbol &super, function<void()> on_error)

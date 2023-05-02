@@ -1,3 +1,5 @@
+#include <functional>
+using std::function;
 #include <iterator>
 using std::next;
 using std::prev;
@@ -5,6 +7,7 @@ using std::prev;
 using std::mismatch;
 #include "loguru.h"
 
+#include "semant.h"
 #include "semant-utility.h"
 #include "cool-tree.h"
 
@@ -85,4 +88,22 @@ string dump_symbols(const vector<Symbol> &symbols)
         text.append((*it++)->get_string());
     }
     return text;
+}
+
+void noop();
+bool check_symbol_eq(const Symbol &thiz, const Symbol &that, function<void()> on_error);
+
+const Symbol &translate_SELF_TYPE(SymbolTable<Symbol, Symbol> *env, const Symbol &t)
+{
+    if (check_symbol_eq(t, SELF_TYPE, noop))
+    {
+        const auto p = env->lookup(SELF_TYPE);
+        CHECK_NOTNULL_F(p, "SELF_TYPE is not in env %p", env);
+        LOG_F(INFO, "translated to %s with %p", (*p)->get_string(), env);
+        return *p;
+    }
+    else
+    {
+        return t;
+    }
 }
