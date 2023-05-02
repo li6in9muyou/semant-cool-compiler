@@ -1,6 +1,4 @@
 #include <symtab.h>
-#include <algorithm>
-using std::all_of;
 #include <string>
 using std::string;
 
@@ -78,6 +76,7 @@ void initialize_constants(void)
     substr = idtable.add_string("substr");
     type_name = idtable.add_string("type_name");
     val = idtable.add_string("_val");
+    method_return_type = idtable.add_string("_method_return_type");
 }
 
 /*   This is the entry point to the semantic checker.
@@ -112,31 +111,28 @@ void program_class::semant()
 
     ctx.classTable.enterscope();
     {
-        vector<bool> results;
+        auto ok = true;
         for (auto i = classes->first(); classes->more(i); i = classes->next(i))
         {
             auto *cls = (class__class *)classes->nth(i);
-            const auto ok = cls->register_symbol(ctx);
-            results.emplace_back(ok);
+            ok &= cls->register_symbol(ctx);
         }
-        const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
-                               { return ok; });
+        LOG_F(INFO, "finish registering class symbols");
         abort_if_not_ok(ok);
     }
 
     {
-        vector<bool> results;
+        auto ok = true;
         for (auto i = classes->first(); classes->more(i); i = classes->next(i))
         {
             auto *cls = (class__class *)classes->nth(i);
-            const auto ok = cls->create_family_feature_table(ctx);
-            results.emplace_back(ok);
+            ok &= cls->create_family_feature_table(ctx);
         }
-        const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
-                               { return ok; });
+        LOG_F(INFO, "finish creating family feature table");
         abort_if_not_ok(ok);
     }
 
+    LOG_F(INFO, "check Main class is present at %s", filename->get_string());
     abort_if_not_ok(
         check_symbol_exists(
             Main,
@@ -145,19 +141,17 @@ void program_class::semant()
             {
                 err.print("Class Main is not defined.\n");
             }));
-    LOG_F(INFO, "Main check passed at %s", filename->get_string());
 
     LOG_F(INFO, "descend into class at %s", filename->get_string());
-    vector<bool> results;
-    for (auto i = classes->len() - 1; i >= 0; i -= 1)
     {
-        auto *cls = (class__class *)classes->nth(i);
-        const auto ok = cls->semant(ctx);
-        results.emplace_back(ok);
+        auto ok = true;
+        for (auto i = classes->len() - 1; i >= 0; i -= 1)
+        {
+            auto *cls = (class__class *)classes->nth(i);
+            ok &= cls->semant(ctx);
+        }
+        abort_if_not_ok(ok);
     }
-    const auto ok = all_of(results.cbegin(), results.cend(), [](bool ok)
-                           { return ok; });
-    abort_if_not_ok(ok);
 
     ctx.classTable.exitscope();
     LOG_F(INFO, "semant ended at %s", filename->get_string());
