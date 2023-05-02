@@ -101,10 +101,14 @@ public:                                                  \
 #define Formal_EXTRAS \
 	virtual void dump_with_types(ostream &, int) = 0;
 
-#define formal_EXTRAS                                    \
-public:                                                  \
-	[[nodiscard]] bool semant(SemantContext &);          \
-	[[nodiscard]] bool register_symbol(SemantContext &); \
+#include <utility>
+using std::pair;
+
+#define formal_EXTRAS                                          \
+public:                                                        \
+	[[nodiscard]] bool semant(SemantContext &);                \
+	[[nodiscard]] bool register_symbol(SemantContext &);       \
+	[[nodiscard]] pair<Symbol, Symbol> get_definition() const; \
 	void dump_with_types(ostream &, int);
 
 #define Case_EXTRAS \
@@ -220,6 +224,14 @@ public:             \
 
 #define loop_EXTRAS \
 public:             \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define dispatch_EXTRAS \
+public:                 \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
+#define static_dispatch_EXTRAS \
+public:                        \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
 #endif

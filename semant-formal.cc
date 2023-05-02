@@ -1,5 +1,7 @@
 #include <string>
 using std::string;
+#include <utility>
+using std::pair;
 
 #include "semant.h"
 #include "semant-utility.h"
@@ -28,12 +30,26 @@ bool formal_class::semant(SemantContext &ctx)
                       "Formal parameter " + name->get_string() + " cannot have type SELF_TYPE.\n");
         });
 
-    ctx.typeEnv->addid(name, &type_decl);
     return ok;
 }
 
 bool formal_class::register_symbol(SemantContext &ctx)
 {
     LOG_F(INFO, "register symbol at formal %s using scope %p", name->get_string(), ctx.typeEnv);
-    return true;
+    const auto ok = check_symbol_not_exists_in_current_scope(
+        name, *ctx.typeEnv,
+        [&]()
+        {
+            err.print(LOC + "Formal parameter " + name->get_string() + " is multiply defined.\n");
+        });
+    if (ok)
+    {
+        ctx.typeEnv->addid(name, &type_decl);
+    }
+    return ok;
+}
+
+pair<Symbol, Symbol> formal_class::get_definition() const
+{
+    return {copy_Symbol(name), copy_Symbol(type_decl)};
 }

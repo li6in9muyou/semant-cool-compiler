@@ -35,12 +35,13 @@ extern Symbol
     str_field,
     substr,
     type_name,
-    val;
+    val,
+    method_return_type;
 
 class FeatureTable
 {
 public:
-  SymbolTable<Symbol, method_class> methods;
+  SymbolTable<Symbol, vector<pair<Symbol, Symbol>>> methods;
   SymbolTable<Symbol, Symbol> attributes;
   FeatureTable() = default;
   void enterscope();
@@ -54,7 +55,7 @@ public:
   unordered_map<Symbol, FeatureTable> programFeatureTable;
   SymbolTable<Symbol, class__class> classTable;
   unordered_map<Symbol, vector<Symbol>> familyHierarchyHash;
-  SymbolTable<Symbol, method_class> *familyMethodTable;
+  SymbolTable<Symbol, vector<pair<Symbol, Symbol>>> *familyMethodTable;
   SymbolTable<Symbol, Symbol> *typeEnv;
   SemantContext() = default;
 };

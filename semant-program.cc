@@ -42,7 +42,8 @@ Symbol
     str_field,
     substr,
     type_name,
-    val;
+    val,
+    method_return_type;
 //
 // Initializing the predefined symbols.
 //
@@ -264,9 +265,10 @@ void program_class::install_basic_classes(SemantContext &ctx)
         auto _ = cls->register_symbol(ctx);
         _ = cls->create_family_feature_table(ctx);
     };
+    // the order of preparation matters, latter ones depend on previous ones
     prepare_builtin_classes(Object_class);
-    prepare_builtin_classes(Str_class);
     prepare_builtin_classes(Int_class);
     prepare_builtin_classes(Bool_class);
+    prepare_builtin_classes(Str_class);
     prepare_builtin_classes(IO_class);
 }

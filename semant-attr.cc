@@ -53,14 +53,16 @@ bool attr_class::semant(SemantContext &ctx)
 
     auto ok = true;
 
-    ok &= check_symbol_exists(
-        type_decl,
-        ctx.classTable,
-        [&]()
-        {
-            err.print(location(ctx.filename, get_line_number()) +
-                      "Class " + type_decl->get_string() + " of attribute " + name->get_string() + " is undefined.\n");
-        });
+    ok &= check_symbol_eq(type_decl, prim_slot) ||
+          check_symbol_eq(type_decl, SELF_TYPE) ||
+          check_symbol_exists(
+              type_decl, ctx.classTable,
+              [&]()
+              {
+                  err.print(LOC + "Class " +
+                            type_decl->get_string() + " of attribute " +
+                            name->get_string() + " is undefined.\n");
+              });
 
     ok &= init->semant(ctx);
     if (!check_symbol_eq(No_type, init->get_type()))
