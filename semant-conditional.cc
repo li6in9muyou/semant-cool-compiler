@@ -5,12 +5,12 @@
 
 bool cond_class::semant(SemantContext &ctx)
 {
-    LOG_F(INFO, "semant at cond at line %d", get_line_number());
     const auto not_bool = [&]()
     {
         err.print(LOC + "Predicate of 'if' does not have type Bool.\n");
     };
 
+    LOG_F(INFO, "semant at cond at line %d", get_line_number());
     auto ok = true;
 
     ok &= pred->semant(ctx);
@@ -18,10 +18,7 @@ bool cond_class::semant(SemantContext &ctx)
     ok &= else_exp->semant(ctx);
 
     ok &= check_symbol_eq(Bool, pred->get_type(), not_bool);
-    const auto thenExprT = then_exp->get_type();
-    const auto elseExprT = else_exp->get_type();
-
-    set_type(least_upper_bound(ctx, thenExprT, elseExprT));
+    set_type(least_upper_bound(ctx, then_exp->get_type(), else_exp->get_type()));
 
     return ok;
 }
