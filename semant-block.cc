@@ -11,7 +11,6 @@ bool block_class::semant(SemantContext &ctx)
     LOG_F(INFO, "semant at block at line %d", get_line_number());
     auto ok = true;
 
-    LOG_F(INFO, "descending into body");
     for (auto i = body->first(); body->more(i); i = body->next(i))
     {
         const auto e = (Expression)body->nth(i);
