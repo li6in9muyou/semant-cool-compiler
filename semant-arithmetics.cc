@@ -3,6 +3,20 @@
 #include "semant-checks.h"
 #include "loguru.h"
 
+bool check_operands_are_integer_after_semant(SemantContext &ctx, Expression &e1, Expression &e2, function<void()> on_error)
+{
+    auto ok = true;
+
+    ok &= e1->semant(ctx);
+    ok &= e2->semant(ctx);
+
+    const auto e1Type = e1->get_type();
+    const auto e2Type = e2->get_type();
+    ok &= (check_symbol_eq(Int, e1Type, on_error) && check_symbol_eq(Int, e2Type, on_error));
+
+    return ok;
+}
+
 bool plus_class::semant(SemantContext &ctx)
 {
     const auto &non_int = [&]()
