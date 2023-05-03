@@ -22,6 +22,7 @@ fi
     /class/examples/semant/my-class-simple-inheritance-tree.cl \
     /class/examples/semant/my-class-superclass-undefined.bad.cl \
     /class/examples/semant/my-conditional.bad.cl \
+    /class/examples/semant/my-dispatch-static.bad.cl \
     /class/examples/semant/my-dispatch.bad.cl \
     /class/examples/semant/my-dispatch.cl \
     /class/examples/semant/my-feature-duplicates.bad.cl \
