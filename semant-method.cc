@@ -13,16 +13,28 @@ using std::to_string;
 
 bool method_class::semant(SemantContext &ctx)
 {
+    const auto &type_mismatch = [&]()
+    {
+        err.print(LOC + "Inferred return type " +
+                  expr->get_type()->get_string() + " of method " +
+                  name->get_string() + " does not conform to declared return type " +
+                  return_type->get_string() + ".\n");
+    };
+    const auto &bad_return_type = [&]()
+    {
+        err.print(location(ctx.filename, get_line_number()) +
+                  "Undefined return type " + return_type->get_string() + " in method " + name->get_string() + ".\n");
+    };
+
     LOG_SCOPE_F(INFO, "semant at method %s", name->get_string());
     auto ok = true;
 
-    LOG_F(INFO, "enter scope on %p", ctx.typeEnv);
+    LOG_F(INFO, "enterscope on %p", ctx.typeEnv);
     ctx.typeEnv->enterscope();
 
     {
-        LOG_SCOPE_F(INFO, "add formals to ctx.typeEnv=%p", ctx.typeEnv);
-        LOG_F(INFO, "enter scope on %p", ctx.typeEnv);
-        ctx.typeEnv->enterscope();
+        LOG_SCOPE_F(INFO, "prepare formals in %p", ctx.typeEnv);
+
         LOG_IF_F(INFO, formals->len() == 0, "no formals");
         for (auto i = formals->first(); formals->more(i); i = formals->next(i))
         {
@@ -35,53 +47,37 @@ bool method_class::semant(SemantContext &ctx)
     }
 
     {
-        LOG_SCOPE_F(INFO, "descend into expression");
+        LOG_SCOPE_F(INFO, "descend into body");
         ok = expr->semant(ctx) && ok;
     }
 
-    const auto returnTypeOk = check_symbol_exists(
-        return_type, ctx.classTable,
-        [&]()
-        {
-            err.print(location(ctx.filename, get_line_number()) +
-                      "Undefined return type " + return_type->get_string() + " in method " + name->get_string() + ".\n");
-        });
+    const auto returnTypeOk = check_symbol_exists(return_type, ctx.classTable, bad_return_type);
     LOG_IF_F(INFO, !returnTypeOk, "declared return type %s does no exist", return_type->get_string());
     LOG_IF_F(INFO, returnTypeOk, "check body type conform to declared type");
 
     LOG_F(INFO, "check body type %s", expr->get_type()->get_string());
     ok = returnTypeOk &&
-         check_type_conform_to(
-             ctx, expr->get_type(), return_type,
-             [&]()
-             {
-                 err.print(location(ctx.filename, get_line_number()) +
-                           "Inferred return type " + expr->get_type()->get_string() +
-                           " of method " + name->get_string() +
-                           " does not conform to declared return type " +
-                           return_type->get_string() + ".\n");
-             }) &&
+         check_type_conform_to(ctx, expr->get_type(), return_type, type_mismatch) &&
          ok;
 
-    ctx.typeEnv->exitscope();
+    LOG_F(INFO, "exitscope on %p", ctx.typeEnv);
     ctx.typeEnv->exitscope();
     return ok;
 }
 
 bool method_class::register_symbol(SemantContext &ctx)
 {
+    const auto &duplicate = [&]()
+    {
+        LOG_F(INFO, "redefinition check failed, add error");
+        err.print(LOC + "Method " +
+                  name->get_string() + " is multiply defined.\n");
+    };
+
     LOG_SCOPE_F(INFO, "register symbol at method %s", name->get_string());
     CHECK_NOTNULL_F(ctx.familyMethodTable, "ctx.familyMethodTable is nullptr");
 
-    auto ok = check_symbol_not_exists_in_current_scope(
-        name,
-        *ctx.familyMethodTable,
-        [&]()
-        {
-            LOG_F(INFO, "redefinition check failed, add error");
-            err.print(location(ctx.filename, get_line_number()) +
-                      "Method " + name->get_string() + " is multiply defined.\n");
-        });
+    auto ok = check_symbol_not_exists_in_current_scope(name, *ctx.familyMethodTable, duplicate);
 
     LOG_IF_F(INFO, nullptr != ctx.familyMethodTable->lookup(name), "this method overrides");
     if (ok)
@@ -93,6 +89,8 @@ bool method_class::register_symbol(SemantContext &ctx)
         }
         impl->push_back({method_return_type, return_type});
         ctx.familyMethodTable->addid(name, impl);
+        LOG_F(INFO, "[%s] impl has length %zu, added to %p",
+              name->get_string(), impl->size(), ctx.familyMethodTable);
     }
 
     return ok;
