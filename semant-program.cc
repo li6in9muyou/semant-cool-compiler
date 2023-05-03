@@ -99,50 +99,49 @@ void program_class::semant()
     loguru::g_preamble_time = false;
     loguru::g_preamble_thread = false;
 
-    initialize_constants();
-    LOG_F(INFO, "initialized constant symbols at semant phase");
+    const auto &no_Main = [&]()
+    {
+        err.print("Class Main is not defined.\n");
+    };
 
     const auto filename = classes->nth(classes->first())->get_filename();
     SemantContext ctx;
     ctx.filename = filename;
+    LOG_F(INFO, "at semant in %s", ctx.filename->get_string());
+    initialize_constants();
+    LOG_F(INFO, "initialized constant symbols at semant phase");
 
     ctx.classTable.enterscope();
     install_basic_classes(ctx);
 
     ctx.classTable.enterscope();
+
     {
+        LOG_SCOPE_F(INFO, "register class symbols");
         auto ok = true;
         for (auto i = classes->first(); classes->more(i); i = classes->next(i))
         {
             auto *cls = (class__class *)classes->nth(i);
             ok &= cls->register_symbol(ctx);
         }
-        LOG_F(INFO, "finish registering class symbols");
         abort_if_not_ok(ok);
     }
 
     {
+        LOG_SCOPE_F(INFO, "create family feature tables");
         auto ok = true;
         for (auto i = classes->first(); classes->more(i); i = classes->next(i))
         {
             auto *cls = (class__class *)classes->nth(i);
             ok &= cls->create_family_feature_table(ctx);
         }
-        LOG_F(INFO, "finish creating family feature tables");
         abort_if_not_ok(ok);
     }
 
-    LOG_F(INFO, "check Main class is present at %s", filename->get_string());
-    abort_if_not_ok(
-        check_symbol_exists(
-            Main,
-            ctx.classTable,
-            [&]()
-            {
-                err.print("Class Main is not defined.\n");
-            }));
+    LOG_F(INFO, "check Main class is present");
+    abort_if_not_ok(check_symbol_exists(Main, ctx.classTable, no_Main));
 
-    LOG_F(INFO, "descend into class at %s", filename->get_string());
+    LOG_F(INFO, "descend into class");
     {
         auto ok = true;
         for (auto i = classes->len() - 1; i >= 0; i -= 1)
@@ -154,7 +153,7 @@ void program_class::semant()
     }
 
     ctx.classTable.exitscope();
-    LOG_F(INFO, "semant ended at %s", filename->get_string());
+    ctx.classTable.exitscope();
 }
 
 void program_class::install_basic_classes(SemantContext &ctx)
