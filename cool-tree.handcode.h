@@ -62,6 +62,8 @@ public:                                          \
 
 #include "symtab.h"
 #include <set>
+#include <functional>
+using std::function;
 #include <string>
 class SemantContext;
 class class__class;
@@ -76,7 +78,11 @@ public:                                                              \
 	[[nodiscard]] bool create_family_feature_table(SemantContext &); \
                                                                      \
 private:                                                             \
-	[[nodiscard]] bool check_class_in_loop(SymbolTable<Symbol, class__class> &, const class__class &, std::set<std::string> &);
+	[[nodiscard]] bool check_class_in_loop(                          \
+		SymbolTable<Symbol, class__class> &,                         \
+		const class__class &,                                        \
+		std::set<std::string> &,                                     \
+		function<void()>);
 
 #define Feature_EXTRAS                                      \
 public:                                                     \

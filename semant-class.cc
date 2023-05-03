@@ -44,7 +44,7 @@ bool class__class::semant(SemantContext &ctx)
             *ctx.familyMethodTable,
             [&]()
             {
-                err.print(location(get_filename(), get_line_number()) +
+                err.print(LOC +
                           "No 'main' method in class Main.\n");
             });
     }
@@ -63,42 +63,48 @@ bool class__class::semant(SemantContext &ctx)
 
 bool class__class::create_family_feature_table(SemantContext &ctx)
 {
+    const auto &bad_superclass = [&]()
+    {
+        err.print(LOC + "Class " +
+                  name->get_string() + " inherits from an undefined class " +
+                  parent->get_string() + ".\n");
+    };
+    const auto &cant_inherit_primitives = [&]()
+    {
+        err.print(LOC + "Class " +
+                  name->get_string() + " cannot inherit class " +
+                  parent->get_string() + ".\n");
+    };
+    const auto &cyclic_hierarchy = [&]()
+    {
+        err.print(LOC + "Class " +
+                  name->get_string() + ", or an ancestor of " +
+                  name->get_string() + ", is involved in an inheritance cycle.\n");
+    };
+
     LOG_SCOPE_F(INFO, "create family feature table at %s", name->get_string());
     const auto alreadyCreated = ctx.programFeatureTable.find(name) != ctx.programFeatureTable.end();
     if (alreadyCreated)
     {
-        LOG_F(INFO, "created by recursion started by derived class, return");
+        LOG_F(INFO, "created by recursion started by derived class, return true");
         return true;
     }
 
     if (check_symbol_not_eq(Object, name))
     {
         auto superclassOk = true;
+
         LOG_F(INFO, "check superclass is defined");
-        superclassOk &= check_symbol_exists(
-            parent,
-            ctx.classTable,
-            [&]()
-            {
-                err.print(
-                    location(get_filename(), get_line_number()) +
-                    "Class " + name->get_string() + " inherits from an undefined class " + parent->get_string() + ".\n");
-            });
+        superclassOk &= check_symbol_exists(parent, ctx.classTable, bad_superclass);
         if (!superclassOk)
         {
             return false;
         }
 
         LOG_F(INFO, "check superclass is not primitives");
-        const auto e = [&]()
-        {
-            err.print(
-                location(get_filename(), get_line_number()) +
-                "Class " + name->get_string() + " cannot inherit class " + parent->get_string() + ".\n");
-        };
-        superclassOk &= check_symbol_not_eq(parent, Bool, e);
-        superclassOk &= check_symbol_not_eq(parent, Int, e);
-        superclassOk &= check_symbol_not_eq(parent, Str, e);
+        superclassOk &= check_symbol_not_eq(parent, Bool, cant_inherit_primitives) &&
+                        check_symbol_not_eq(parent, Int, cant_inherit_primitives) &&
+                        check_symbol_not_eq(parent, Str, cant_inherit_primitives);
         if (!superclassOk)
         {
             return false;
@@ -106,13 +112,16 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
 
         LOG_F(INFO, "check superclass is not in inheritance cycle");
         auto mark = std::set<string>();
-        if (!check_class_in_loop(ctx.classTable, *ctx.classTable.lookup(parent), mark))
+        superclassOk &= check_class_in_loop(ctx.classTable, *ctx.classTable.lookup(parent), mark, cyclic_hierarchy);
+        if (!superclassOk)
         {
-            err.print(
-                location(get_filename(), get_line_number()) +
-                "Class " + name->get_string() + ", or an ancestor of " + name->get_string() + ", is involved in an inheritance cycle.\n");
+
             return false;
         }
+    }
+    else
+    {
+        LOG_F(INFO, "skip check on Object's superclass");
     }
 
     const auto foundFamilyFeatureTable = ctx.programFeatureTable.find(parent) != ctx.programFeatureTable.end();
@@ -167,17 +176,15 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
 
 bool class__class::register_symbol(SemantContext &ctx)
 {
-    LOG_F(INFO, "register symbol at class %s", name->get_string());
+    const auto &duplicate = [&]()
+    {
+        err.print(
+            LOC +
+            "Class " + name->get_string() + " was previously defined.\n");
+    };
 
-    const auto ok = check_symbol_not_exists(
-        name,
-        ctx.classTable,
-        [&]()
-        {
-            err.print(
-                location(get_filename(), get_line_number()) +
-                "Class " + name->get_string() + " was previously defined.\n");
-        });
+    LOG_F(INFO, "register symbol at class %s", name->get_string());
+    const auto ok = check_symbol_not_exists(name, ctx.classTable, duplicate);
     if (ok)
     {
         ctx.classTable.addid(name, this);
@@ -186,15 +193,11 @@ bool class__class::register_symbol(SemantContext &ctx)
     return ok;
 }
 
-bool contains(const string &needle, const std::set<string> &haystack)
-{
-    return haystack.cend() != haystack.find(needle);
-}
-
 bool class__class::check_class_in_loop(
     SymbolTable<Symbol, class__class> &classTable,
     const class__class &me,
-    std::set<string> &mark)
+    std::set<string> &mark,
+    function<void()> on_error)
 {
     LOG_SCOPE_F(INFO, "check inheritance loop on %s", me.name->get_string());
     if (check_symbol_eq(me.name, No_class))
@@ -204,7 +207,7 @@ bool class__class::check_class_in_loop(
     }
 
     const string my_name(me.name->get_string());
-    if (contains(my_name, mark))
+    if (mark.cend() != mark.find(my_name))
     {
         LOG_F(INFO, "parent has been visited before, return false");
         return false;
@@ -218,11 +221,15 @@ bool class__class::check_class_in_loop(
     }
 
     mark.insert(my_name);
-    const auto ok = check_class_in_loop(classTable, *my_parent, mark);
+    const auto ok = check_class_in_loop(classTable, *my_parent, mark, on_error);
+    if (!ok)
+    {
+        on_error();
+    }
     mark.erase(my_name);
 
     LOG_IF_F(INFO, ok, "return true");
-    LOG_IF_F(INFO, !ok, "return true");
+    LOG_IF_F(INFO, !ok, "return false");
     return ok;
 }
 
