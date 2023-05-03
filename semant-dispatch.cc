@@ -55,16 +55,45 @@ bool check_actual_args(
     return ok;
 }
 
+const auto &find_impl_in(
+    SymbolTable<Symbol, std::vector<std::pair<Symbol, Symbol>>> &familyMethods,
+    Symbol method_name)
+{
+    LOG_F(INFO, "at find impl of %s in %p", method_name->get_string(), &familyMethods);
+    const auto impl = familyMethods.lookup(method_name);
+    CHECK_NOTNULL_F(impl, "not found");
+    return *impl;
+}
+
 bool dispatch_class::semant(SemantContext &ctx)
 {
-    LOG_F(INFO, "semant at dispatch at line %d", get_line_number());
+    LOG_F(INFO, "semant at dispatch to [%s] at line %d", name->get_string(), get_line_number());
     auto ok = true;
-    ok &= expr->semant(ctx);
-    const auto receiver = translate_SELF_TYPE(ctx.typeEnv, expr->get_type());
-    LOG_F(INFO, "receiver has type %s", receiver->get_string());
-    const auto impl = ctx.familyMethodTable->lookup(name);
-    CHECK_NOTNULL_F(impl, "%s does not exist in %p", name->get_string(), ctx.familyMethodTable);
 
+    ok &= expr->semant(ctx);
+    const auto receiverType = translate_SELF_TYPE(ctx.typeEnv, expr->get_type());
+    LOG_F(INFO, "receiver has type %s", receiverType->get_string());
+
+    auto &receiverFamilyFeatures = ctx.programFeatureTable.at(receiverType).methods;
+    const auto methodOk = check_symbol_exists(
+        name, receiverFamilyFeatures,
+        [&]()
+        {
+            err.print(LOC + "Dispatch to undefined method " + name->get_string() + ".\n");
+        });
+    ok &= methodOk;
+    if (!methodOk)
+    {
+        LOG_F(INFO, "method is undefined, return");
+        set_type(Object);
+        return ok;
+    }
+    else
+    {
+        LOG_F(INFO, "method found");
+    }
+
+    const auto &impl = find_impl_in(receiverFamilyFeatures, name);
     {
         LOG_SCOPE_F(INFO, "descend into actual arguments of length %d", actual->len());
         for (auto i = actual->first(); actual->more(i); i = actual->next(i))
@@ -74,7 +103,7 @@ bool dispatch_class::semant(SemantContext &ctx)
     }
 
     LOG_F(INFO, "check actual args and formal args have same length");
-    const auto implArgLen = ((int)impl->size()) - 1;
+    const auto implArgLen = ((int)impl.size()) - 1;
     const auto argLenOk = implArgLen == actual->len();
     if (!argLenOk)
     {
@@ -86,9 +115,9 @@ bool dispatch_class::semant(SemantContext &ctx)
     {
         LOG_SCOPE_F(INFO, "check actual args type conform to formals");
         auto actualIt = actual->first();
-        for (auto i = 0; i < (int)impl->size() - 1; i++)
+        for (auto i = 0; i < (int)impl.size() - 1; i++)
         {
-            const auto p = impl->at(i);
+            const auto p = impl.at(i);
 
             const auto formalName = p.first;
             const auto formalType = p.second;
@@ -107,8 +136,7 @@ bool dispatch_class::semant(SemantContext &ctx)
                 });
         }
     }
-    set_type(impl->back().second);
-
+    set_type(impl.back().second);
     return ok;
 }
 
