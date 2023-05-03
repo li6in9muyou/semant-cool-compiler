@@ -86,57 +86,35 @@ bool dispatch_class::semant(SemantContext &ctx)
     {
         LOG_F(INFO, "method is undefined, return");
         set_type(Object);
-        return ok;
     }
     else
     {
         LOG_F(INFO, "method found");
-    }
-
-    const auto &impl = find_impl_in(receiverFamilyFeatures, name);
-    {
-        LOG_SCOPE_F(INFO, "descend into actual arguments of length %d", actual->len());
-        for (auto i = actual->first(); actual->more(i); i = actual->next(i))
+        const auto &impl = find_impl_in(receiverFamilyFeatures, name);
         {
-            ok = ((Expression)actual->nth(i))->semant(ctx) && ok;
+            LOG_SCOPE_F(INFO, "descend into actual arguments of length %d", actual->len());
+            for (auto i = actual->first(); actual->more(i); i = actual->next(i))
+            {
+                ok = ((Expression)actual->nth(i))->semant(ctx) && ok;
+            }
         }
+        ok &= check_actual_args(
+            ctx, impl, actual,
+            [&]()
+            {
+                err.print(LOC + "Method " + name->get_string() + " called with wrong number of arguments.\n");
+            },
+            [&](const Symbol &formalName, const Symbol &formalType, const Symbol &actualType)
+            {
+                err.print(LOC +
+                          "In call of method " +
+                          name->get_string() + ", type " +
+                          actualType->get_string() + " of parameter " +
+                          formalName->get_string() + " does not conform to declared type " +
+                          formalType->get_string() + ".\n");
+            });
+        set_type_if_ok(ok, this, impl.back().second, Object);
     }
-
-    LOG_F(INFO, "check actual args and formal args have same length");
-    const auto implArgLen = ((int)impl.size()) - 1;
-    const auto argLenOk = implArgLen == actual->len();
-    if (!argLenOk)
-    {
-        LOG_F(INFO, "%d actual args != %d formal args", actual->len(), implArgLen);
-        err.print(LOC + "Method " + name->get_string() + " called with wrong number of arguments.\n");
-    }
-    ok = argLenOk && ok;
-    if (argLenOk && actual->len() > 0)
-    {
-        LOG_SCOPE_F(INFO, "check actual args type conform to formals");
-        auto actualIt = actual->first();
-        for (auto i = 0; i < (int)impl.size() - 1; i++)
-        {
-            const auto p = impl.at(i);
-
-            const auto formalName = p.first;
-            const auto formalType = p.second;
-            const auto actualType = actual->nth(actualIt)->get_type();
-            actualIt = actual->next(actualIt);
-            ok &= check_type_conform_to(
-                ctx, actualType, formalType,
-                [&]()
-                {
-                    err.print(LOC +
-                              "In call of method " +
-                              name->get_string() + ", type " +
-                              actualType->get_string() + " of parameter " +
-                              formalName->get_string() + " does not conform to declared type " +
-                              formalType->get_string() + ".\n");
-                });
-        }
-    }
-    set_type(impl.back().second);
     return ok;
 }
 
