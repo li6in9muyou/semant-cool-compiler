@@ -5,12 +5,12 @@
 
 bool loop_class::semant(SemantContext &ctx)
 {
-    LOG_F(INFO, "semant at loop at line %d", get_line_number());
     const auto not_bool = [&]()
     {
         err.print(LOC + "Loop condition does not have type Bool.\n");
     };
 
+    LOG_F(INFO, "semant at loop at line %d", get_line_number());
     auto ok = true;
 
     ok &= pred->semant(ctx);
