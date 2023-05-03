@@ -10,8 +10,8 @@ bool new__class::semant(SemantContext &ctx)
 {
     const auto &undefined_type = [&]()
     {
-        err.print(location(ctx.filename, get_line_number()) +
-                  "'new' used with undefined class " + type_name->get_string() + ".\n");
+        err.print(LOC + "'new' used with undefined class " +
+                  type_name->get_string() + ".\n");
     };
 
     LOG_F(INFO, "semant at 'new %s'", type_name->get_string());
