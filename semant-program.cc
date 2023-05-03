@@ -108,7 +108,6 @@ void program_class::semant()
 
     ctx.classTable.enterscope();
     install_basic_classes(ctx);
-    LOG_F(INFO, "installed basic classes at %s", filename->get_string());
 
     ctx.classTable.enterscope();
     {
@@ -129,7 +128,7 @@ void program_class::semant()
             auto *cls = (class__class *)classes->nth(i);
             ok &= cls->create_family_feature_table(ctx);
         }
-        LOG_F(INFO, "finish creating family feature table");
+        LOG_F(INFO, "finish creating family feature tables");
         abort_if_not_ok(ok);
     }
 
@@ -265,10 +264,14 @@ void program_class::install_basic_classes(SemantContext &ctx)
         auto _ = cls->register_symbol(ctx);
         _ = cls->create_family_feature_table(ctx);
     };
-    // the order of preparation matters, latter ones depend on previous ones
-    prepare_builtin_classes(Object_class);
-    prepare_builtin_classes(Int_class);
-    prepare_builtin_classes(Bool_class);
-    prepare_builtin_classes(Str_class);
-    prepare_builtin_classes(IO_class);
+
+    {
+        // the order of preparation matters, latter ones depend on previous ones
+        LOG_SCOPE_F(INFO, "prepare built-in classes");
+        prepare_builtin_classes(Object_class);
+        prepare_builtin_classes(Int_class);
+        prepare_builtin_classes(Bool_class);
+        prepare_builtin_classes(Str_class);
+        prepare_builtin_classes(IO_class);
+    }
 }
