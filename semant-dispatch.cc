@@ -155,7 +155,6 @@ bool static_dispatch_class::semant(SemantContext &ctx)
         if (ok)
         {
             const auto impl = receiverFamilyFeatures.lookup(name);
-            // TODO: check actual argument types
             ok &= check_actual_args(
                 ctx, *impl, actual,
                 [&]()
