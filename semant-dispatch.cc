@@ -13,10 +13,10 @@ bool check_actual_args(
     function<void()> on_bad_arg_len,
     function<void(const Symbol &formalName, const Symbol &formalType, const Symbol &actualType)> on_bad_type)
 {
-    LOG_F(INFO, "at check actual args");
+    LOG_F(INFO, "check actual args");
     auto ok = true;
     {
-        LOG_SCOPE_F(INFO, "descend into actual arguments of length %d", actual->len());
+        LOG_SCOPE_F(INFO, "descend to %d actual args", actual->len());
         for (auto i = actual->first(); actual->more(i); i = actual->next(i))
         {
             ok = ((Expression)actual->nth(i))->semant(ctx) && ok;
@@ -55,7 +55,7 @@ bool check_actual_args(
     return ok;
 }
 
-const auto &find_impl_in(
+const auto &method_definition(
     SymbolTable<Symbol, std::vector<std::pair<Symbol, Symbol>>> &familyMethods,
     Symbol method_name)
 {
@@ -71,52 +71,57 @@ bool dispatch_class::semant(SemantContext &ctx)
     auto ok = true;
 
     ok &= expr->semant(ctx);
+    LOG_F(INFO, "check receiver type is defined");
     const auto receiverType = translate_SELF_TYPE(ctx.typeEnv, expr->get_type());
     LOG_F(INFO, "receiver has type %s", receiverType->get_string());
-
-    CHECK_F(ctx.programFeatureTable.find(receiverType) != ctx.programFeatureTable.end(),
-            "receiverType does not exist");
-    auto &receiverFamilyFeatures = ctx.programFeatureTable.at(receiverType).methods;
-    const auto methodOk = check_symbol_exists(
-        name, receiverFamilyFeatures,
-        [&]()
-        {
-            err.print(LOC + "Dispatch to undefined method " + name->get_string() + ".\n");
-        });
-    ok &= methodOk;
-    if (!methodOk)
+    const auto receiverTypeOk = ctx.programFeatureTable.find(receiverType) != ctx.programFeatureTable.end();
+    ok &= receiverTypeOk;
+    if (receiverTypeOk)
     {
-        LOG_F(INFO, "method is undefined, return");
-        set_type(Object);
+        LOG_F(INFO, "check method name exists in receiver family method table");
+        auto &receiverFamilyFeatures = ctx.programFeatureTable.at(receiverType).methods;
+        const auto methodOk = check_symbol_exists(
+            name, receiverFamilyFeatures,
+            [&]()
+            {
+                err.print(LOC + "Dispatch to undefined method " + name->get_string() + ".\n");
+            });
+        ok &= methodOk;
+        if (!methodOk)
+        {
+            LOG_F(INFO, "method is undefined, return");
+            set_type(Object);
+        }
+        else
+        {
+            LOG_F(INFO, "method found");
+            const auto &impl = method_definition(receiverFamilyFeatures, name);
+            ok &= check_actual_args(
+                ctx, impl, actual,
+                [&]()
+                {
+                    err.print(LOC + "Method " + name->get_string() + " called with wrong number of arguments.\n");
+                },
+                [&](const Symbol &formalName, const Symbol &formalType, const Symbol &actualType)
+                {
+                    err.print(LOC +
+                              "In call of method " +
+                              name->get_string() + ", type " +
+                              actualType->get_string() + " of parameter " +
+                              formalName->get_string() + " does not conform to declared type " +
+                              formalType->get_string() + ".\n");
+                });
+            set_type_if_ok(ok, this, impl.back().second, Object);
+        }
     }
     else
     {
-        LOG_F(INFO, "method found");
-        const auto &impl = find_impl_in(receiverFamilyFeatures, name);
-        {
-            LOG_SCOPE_F(INFO, "descend into actual arguments of length %d", actual->len());
-            for (auto i = actual->first(); actual->more(i); i = actual->next(i))
-            {
-                ok = ((Expression)actual->nth(i))->semant(ctx) && ok;
-            }
-        }
-        ok &= check_actual_args(
-            ctx, impl, actual,
-            [&]()
-            {
-                err.print(LOC + "Method " + name->get_string() + " called with wrong number of arguments.\n");
-            },
-            [&](const Symbol &formalName, const Symbol &formalType, const Symbol &actualType)
-            {
-                err.print(LOC +
-                          "In call of method " +
-                          name->get_string() + ", type " +
-                          actualType->get_string() + " of parameter " +
-                          formalName->get_string() + " does not conform to declared type " +
-                          formalType->get_string() + ".\n");
-            });
-        set_type_if_ok(ok, this, impl.back().second, Object);
+        err.print(LOC + "Dispatch on undefined class " + receiverType->get_string() + ".\n");
+        LOG_F(INFO, "receiver type is undefined, return");
+        set_type(Object);
+        return ok;
     }
+
     return ok;
 }
 
@@ -156,9 +161,9 @@ bool static_dispatch_class::semant(SemantContext &ctx)
             });
         if (ok)
         {
-            const auto impl = receiverFamilyFeatures.lookup(name);
+            const auto &impl = method_definition(receiverFamilyFeatures, name);
             ok &= check_actual_args(
-                ctx, *impl, actual,
+                ctx, impl, actual,
                 [&]()
                 {
                     err.print(LOC + "Method " + name->get_string() + " invoked with wrong number of arguments.\n");
@@ -172,7 +177,7 @@ bool static_dispatch_class::semant(SemantContext &ctx)
                               formalName->get_string() + " does not conform to declared type " +
                               formalType->get_string() + ".\n");
                 });
-            set_type(impl->back().second);
+            set_type(impl.back().second);
         }
         else
         {
