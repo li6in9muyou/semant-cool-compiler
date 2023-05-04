@@ -59,7 +59,7 @@ const auto &find_impl_in(
     SymbolTable<Symbol, std::vector<std::pair<Symbol, Symbol>>> &familyMethods,
     Symbol method_name)
 {
-    LOG_F(INFO, "at find impl of %s in %p", method_name->get_string(), &familyMethods);
+    LOG_F(INFO, "at find impl of [%s] in %p", method_name->get_string(), &familyMethods);
     const auto impl = familyMethods.lookup(method_name);
     CHECK_NOTNULL_F(impl, "not found");
     return *impl;
@@ -74,6 +74,8 @@ bool dispatch_class::semant(SemantContext &ctx)
     const auto receiverType = translate_SELF_TYPE(ctx.typeEnv, expr->get_type());
     LOG_F(INFO, "receiver has type %s", receiverType->get_string());
 
+    CHECK_F(ctx.programFeatureTable.find(receiverType) != ctx.programFeatureTable.end(),
+            "receiverType does not exist");
     auto &receiverFamilyFeatures = ctx.programFeatureTable.at(receiverType).methods;
     const auto methodOk = check_symbol_exists(
         name, receiverFamilyFeatures,

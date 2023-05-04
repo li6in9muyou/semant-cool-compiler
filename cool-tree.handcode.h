@@ -240,4 +240,8 @@ public:                 \
 public:                        \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
+#define isvoid_EXTRAS \
+public:               \
+	[[nodiscard]] bool semant(SemantContext &ctx) override;
+
 #endif
