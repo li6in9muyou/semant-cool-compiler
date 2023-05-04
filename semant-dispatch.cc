@@ -55,129 +55,161 @@ bool check_actual_args(
     return ok;
 }
 
-const auto &method_definition(
-    SymbolTable<Symbol, std::vector<std::pair<Symbol, Symbol>>> &familyMethods,
-    Symbol method_name)
+const auto *method_definition(SemantContext &ctx, const Symbol &type, const Symbol &method)
 {
-    LOG_F(INFO, "at find impl of [%s] in %p", method_name->get_string(), &familyMethods);
-    const auto impl = familyMethods.lookup(method_name);
-    CHECK_NOTNULL_F(impl, "not found");
-    return *impl;
+    const auto &T = translate_SELF_TYPE(ctx.typeEnv, type);
+    LOG_F(INFO, "at method definition of %s::%s", T->get_string(), method->get_string());
+    auto familyMethods = ctx.programFeatureTable.at(T).methods;
+    LOG_F(INFO, "search in %p", &familyMethods);
+    const auto impl = familyMethods.lookup(method);
+    LOG_IF_F(INFO, impl == nullptr, "%s::%s not found", T->get_string(), method->get_string());
+    return impl;
 }
 
-bool dispatch_class::semant(SemantContext &ctx)
+bool check_dispatch_method_to_type(
+    SemantContext &ctx,
+    const Symbol &type,
+    const Symbol &name,
+    Expressions &actual,
+    function<void()> on_bad_type,
+    function<void()> on_bad_method,
+    function<void()> on_bad_arg_len,
+    function<void(const Symbol &formalName, const Symbol &formalType, const Symbol &actualType)> on_bad_args)
 {
-    LOG_F(INFO, "semant at dispatch to [%s] at line %d", name->get_string(), get_line_number());
+    const auto &T = translate_SELF_TYPE(ctx.typeEnv, type);
+    LOG_SCOPE_F(INFO, "check dispatch method %s::%s", T->get_string(), name->get_string());
     auto ok = true;
 
-    ok &= expr->semant(ctx);
-    LOG_F(INFO, "check receiver type is defined");
-    const auto receiverType = translate_SELF_TYPE(ctx.typeEnv, expr->get_type());
-    LOG_F(INFO, "receiver has type %s", receiverType->get_string());
-    const auto receiverTypeOk = ctx.programFeatureTable.find(receiverType) != ctx.programFeatureTable.end();
-    ok &= receiverTypeOk;
-    if (receiverTypeOk)
+    LOG_F(INFO, "check type exists");
+    ok &= ctx.programFeatureTable.find(T) != ctx.programFeatureTable.end();
+
+    if (ok)
     {
-        LOG_F(INFO, "check method name exists in receiver family method table");
-        auto &receiverFamilyFeatures = ctx.programFeatureTable.at(receiverType).methods;
-        const auto methodOk = check_symbol_exists(
-            name, receiverFamilyFeatures,
-            [&]()
-            {
-                err.print(LOC + "Dispatch to undefined method " + name->get_string() + ".\n");
-            });
-        ok &= methodOk;
-        if (!methodOk)
+        const auto *impl = method_definition(ctx, T, name);
+        ok &= impl != nullptr;
+
+        if (ok)
         {
-            LOG_F(INFO, "method is undefined, return");
-            set_type(Object);
+            LOG_F(INFO, "method found");
+            ok &= check_actual_args(ctx, *impl, actual, on_bad_arg_len, on_bad_args);
+            return ok;
         }
         else
         {
-            LOG_F(INFO, "method found");
-            const auto &impl = method_definition(receiverFamilyFeatures, name);
-            ok &= check_actual_args(
-                ctx, impl, actual,
-                [&]()
-                {
-                    err.print(LOC + "Method " + name->get_string() + " called with wrong number of arguments.\n");
-                },
-                [&](const Symbol &formalName, const Symbol &formalType, const Symbol &actualType)
-                {
-                    err.print(LOC +
-                              "In call of method " +
-                              name->get_string() + ", type " +
-                              actualType->get_string() + " of parameter " +
-                              formalName->get_string() + " does not conform to declared type " +
-                              formalType->get_string() + ".\n");
-                });
-            set_type_if_ok(ok, this, impl.back().second, Object);
+            on_bad_method();
+            return ok;
         }
     }
     else
     {
-        err.print(LOC + "Dispatch on undefined class " + receiverType->get_string() + ".\n");
-        LOG_F(INFO, "receiver type is undefined, return");
-        set_type(Object);
+        on_bad_type();
         return ok;
     }
+}
 
+bool dispatch_class::semant(SemantContext &ctx)
+{
+
+    const auto &bad_method = [&]()
+    {
+        err.print(LOC + "Dispatch to undefined method " + name->get_string() + ".\n");
+    };
+    const auto &bad_type = [&](const auto &T)
+    {
+        return [&]()
+        {
+            err.print(LOC + "Dispatch on undefined class " + T->get_string() + ".\n");
+        };
+    };
+    const auto &bad_cast = [&](const auto &T)
+    {
+        return [&]()
+        {
+            err.print(LOC + "Expression type " +
+                      T->get_string() + " does not conform to declared static dispatch type " +
+                      type_name->get_string() + ".\n");
+        };
+    };
+    const auto &bad_arg_len = [&]()
+    {
+        err.print(LOC + "Method " + name->get_string() + " called with wrong number of arguments.\n");
+    };
+    const auto &bad_args = [&](const Symbol &formalName, const Symbol &formalType, const Symbol &actualType)
+    {
+        err.print(LOC +
+                  "In call of method " +
+                  name->get_string() + ", type " +
+                  actualType->get_string() + " of parameter " +
+                  formalName->get_string() + " does not conform to declared type " +
+                  formalType->get_string() + ".\n");
+    };
+
+    LOG_F(INFO, "semant at dispatch at line %d", get_line_number());
+    auto ok = true;
+    ok &= expr->semant(ctx);
+    const auto exprT = expr->get_type();
+    ok &= check_dispatch_method_to_type(ctx, exprT, name, actual, bad_type(exprT), bad_method, bad_arg_len, bad_args);
+    if (ok)
+    {
+        set_type(method_definition(ctx, exprT, name)->back().second);
+    }
+    else
+    {
+        set_type(Object);
+    }
     return ok;
 }
 
 bool static_dispatch_class::semant(SemantContext &ctx)
 {
+    const auto &reject_SELF_TYPE = [&]()
+    {
+        err.print(LOC + "Static dispatch to SELF_TYPE.\n");
+    };
+    const auto &bad_type = [&]()
+    {
+        err.print(LOC + "Static dispatch to undefined class " + type_name->get_string() + ".\n");
+    };
+    const auto &bad_cast = [&](const auto &T)
+    {
+        return [&]()
+        {
+            err.print(LOC + "Expression type " +
+                      T->get_string() + " does not conform to declared static dispatch type " +
+                      type_name->get_string() + ".\n");
+        };
+    };
+    const auto &bad_method = [&]()
+    {
+        err.print(LOC + "Static dispatch to undefined method " + name->get_string() + ".\n");
+    };
+    const auto &bad_arg_len = [&]()
+    {
+        err.print(LOC + "Method " + name->get_string() + " invoked with wrong number of arguments.\n");
+    };
+    const auto &bad_args = [&](const Symbol &formalName, const Symbol &formalType, const Symbol &actualType)
+    {
+        err.print(LOC +
+                  "In call of method " +
+                  name->get_string() + ", type " +
+                  actualType->get_string() + " of parameter " +
+                  formalName->get_string() + " does not conform to declared type " +
+                  formalType->get_string() + ".\n");
+    };
+
     LOG_F(INFO, "semant at static dispatch at line %d", get_line_number());
     auto ok = true;
-    ok &= check_symbol_not_eq(
-        type_name, SELF_TYPE,
-        [&]()
-        {
-            err.print(LOC + "Static dispatch to SELF_TYPE.\n");
-        });
-    ok &= check_symbol_exists(
-        type_name, ctx.classTable,
-        [&]()
-        {
-            err.print(LOC + "Static dispatch to undefined class " + type_name->get_string() + ".\n");
-        });
+    ok &= check_symbol_not_eq(type_name, SELF_TYPE, reject_SELF_TYPE);
+    ok &= check_symbol_exists(type_name, ctx.classTable, bad_type);
     if (ok)
     {
         ok &= expr->semant(ctx);
-        ok &= check_type_conform_to(
-            ctx, expr->get_type(), type_name,
-            [&]()
-            {
-                err.print(LOC + "Expression type " +
-                          expr->get_type()->get_string() + " does not conform to declared static dispatch type " +
-                          type_name->get_string() + ".\n");
-            });
-        auto &receiverFamilyFeatures = ctx.programFeatureTable.at(type_name).methods;
-        ok &= check_symbol_exists(
-            name, receiverFamilyFeatures,
-            [&]()
-            {
-                err.print(LOC + "Static dispatch to undefined method " + name->get_string() + ".\n");
-            });
+        const auto exprT = expr->get_type();
+        ok &= check_type_conform_to(ctx, exprT, type_name, bad_cast(exprT));
+        ok &= ok && check_dispatch_method_to_type(ctx, type_name, name, actual, bad_type, bad_method, bad_arg_len, bad_args);
         if (ok)
         {
-            const auto &impl = method_definition(receiverFamilyFeatures, name);
-            ok &= check_actual_args(
-                ctx, impl, actual,
-                [&]()
-                {
-                    err.print(LOC + "Method " + name->get_string() + " invoked with wrong number of arguments.\n");
-                },
-                [&](const Symbol &formalName, const Symbol &formalType, const Symbol &actualType)
-                {
-                    err.print(LOC +
-                              "In call of method " +
-                              name->get_string() + ", type " +
-                              actualType->get_string() + " of parameter " +
-                              formalName->get_string() + " does not conform to declared type " +
-                              formalType->get_string() + ".\n");
-                });
-            set_type(impl.back().second);
+            set_type(method_definition(ctx, exprT, name)->back().second);
         }
         else
         {
