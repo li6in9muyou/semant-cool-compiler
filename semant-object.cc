@@ -5,14 +5,26 @@
 
 bool object_class::semant(SemantContext &ctx)
 {
+    const auto undefined = [&]()
+    {
+        err.print(LOC + "Undeclared identifier " + name->get_string() + ".\n");
+    };
+
     LOG_F(INFO, "semant at object id %s", name->get_string());
 
-    const auto idExists = check_symbol_exists(name, *ctx.typeEnv);
-    const auto idType = *ctx.typeEnv->lookup(name);
-    const auto idTypeExists = check_symbol_exists(idType, ctx.classTable);
-
-    LOG_IF_F(INFO, !idExists, "id does not in scope");
-    LOG_IF_F(INFO, !idTypeExists, "id has undefined type %s", idType->get_string());
-
-    return set_type_if_ok(idExists && idTypeExists, this, idType, Object);
+    if (check_symbol_exists(name, *ctx.typeEnv, undefined))
+    {
+        const auto idType = *ctx.typeEnv->lookup(name);
+        const auto idTypeExist = check_symbol_exists(idType, ctx.classTable);
+        LOG_IF_F(INFO, !idTypeExist, "id has undefined type %s", idType->get_string());
+        LOG_F(INFO, "set type to %s", idType->get_string());
+        set_type(idType);
+        return idTypeExist;
+    }
+    else
+    {
+        LOG_F(INFO, "id not found, set type to Object");
+        set_type(Object);
+        return false;
+    }
 }
