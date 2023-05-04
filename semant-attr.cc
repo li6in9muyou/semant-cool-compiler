@@ -11,13 +11,13 @@ bool attr_class::register_symbol(SemantContext &ctx)
 {
     const auto &duplicate = [&]()
     {
-        err.print(location(ctx.filename, get_line_number()) +
-                  "Attribute " + name->get_string() + " is multiply defined in class.\n");
+        err.print(LOC + "Attribute " +
+                  name->get_string() + " is multiply defined in class.\n");
     };
     const auto &shadow = [&]()
     {
-        err.print(location(ctx.filename, get_line_number()) +
-                  "Attribute " + name->get_string() + " is an attribute of an inherited class.\n");
+        err.print(LOC + "Attribute " +
+                  name->get_string() + " is an attribute of an inherited class.\n");
     };
 
     LOG_F(INFO, "attribute register symbol at attribute %s", name->get_string());
