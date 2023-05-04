@@ -4,38 +4,4 @@ if ! make -j8 semant; then
     exit 1
 fi
 
-./test_one -q \
-    /class/examples/semant/my-arithmetic.bad.cl \
-    /class/examples/semant/my-assign.bad.cl \
-    /class/examples/semant/my-attribute-dependency.bad.cl \
-    /class/examples/semant/my-attribute-init.cl \
-    /class/examples/semant/my-attribute-shadow-simple.bad.cl \
-    /class/examples/semant/my-attribute-shadow.bad.cl \
-    /class/examples/semant/my-attribute-type-undefined.bad.cl \
-    /class/examples/semant/my-block-type.bad.cl \
-    /class/examples/semant/my-case-covers-all-cases.bad.cl \
-    /class/examples/semant/my-class-cyclic-inheritance.bad.cl \
-    /class/examples/semant/my-class-duplicate.bad.cl \
-    /class/examples/semant/my-class-inherit-from-primitives.bad.cl \
-    /class/examples/semant/my-class-no-Main.bad.cl \
-    /class/examples/semant/my-class-simple-Main.cl \
-    /class/examples/semant/my-class-simple-inheritance-tree.cl \
-    /class/examples/semant/my-class-superclass-undefined.bad.cl \
-    /class/examples/semant/my-conditional.bad.cl \
-    /class/examples/semant/my-dispatch-static.bad.cl \
-    /class/examples/semant/my-dispatch-static.cl \
-    /class/examples/semant/my-dispatch.bad.cl \
-    /class/examples/semant/my-dispatch.cl \
-    /class/examples/semant/my-feature-duplicates.bad.cl \
-    /class/examples/semant/my-logics.bad.cl \
-    /class/examples/semant/my-loop.cl \
-    /class/examples/semant/my-method-Main-has-no-main.bad.cl \
-    /class/examples/semant/my-method-formal-bind-id.cl \
-    /class/examples/semant/my-method-formal-duplicate.bad.cl \
-    /class/examples/semant/my-method-formal-forbid-self-type.bad.cl \
-    /class/examples/semant/my-method-formal-type-undefined.bad.cl \
-    /class/examples/semant/my-method-return-type.bad.cl \
-    /class/examples/semant/my-new-simple.cl \
-    /class/examples/semant/my-new-valid-classes.bad.cl \
-    /class/examples/semant/my-object-id.bad.cl \
-    /class/examples/semant/my-type-annotation.cl
+./test_one -q /class/examples/semant/my-*
