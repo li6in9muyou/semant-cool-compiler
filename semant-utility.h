@@ -21,6 +21,7 @@ private:
 
 public:
     bool print(const string &text, ostream &out = cerr);
+    bool print_once(const string &text, ostream &out = cerr);
     NoRepeatPrinter() = default;
 };
 

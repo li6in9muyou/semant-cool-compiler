@@ -65,21 +65,21 @@ bool class__class::create_family_feature_table(SemantContext &ctx)
 {
     const auto &bad_superclass = [&]()
     {
-        err.print(LOC + "Class " +
-                  name->get_string() + " inherits from an undefined class " +
-                  parent->get_string() + ".\n");
+        err.print_once(LOC + "Class " +
+                       name->get_string() + " inherits from an undefined class " +
+                       parent->get_string() + ".\n");
     };
     const auto &cant_inherit_primitives = [&]()
     {
-        err.print(LOC + "Class " +
-                  name->get_string() + " cannot inherit class " +
-                  parent->get_string() + ".\n");
+        err.print_once(LOC + "Class " +
+                       name->get_string() + " cannot inherit class " +
+                       parent->get_string() + ".\n");
     };
     const auto &cyclic_hierarchy = [&]()
     {
-        err.print(LOC + "Class " +
-                  name->get_string() + ", or an ancestor of " +
-                  name->get_string() + ", is involved in an inheritance cycle.\n");
+        err.print_once(LOC + "Class " +
+                       name->get_string() + ", or an ancestor of " +
+                       name->get_string() + ", is involved in an inheritance cycle.\n");
     };
 
     LOG_SCOPE_F(INFO, "create family feature table at %s", name->get_string());

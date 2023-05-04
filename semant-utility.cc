@@ -13,7 +13,7 @@ using std::mismatch;
 
 NoRepeatPrinter err = NoRepeatPrinter();
 
-bool NoRepeatPrinter::print(const string &text, ostream &out)
+bool NoRepeatPrinter::print_once(const string &text, ostream &out)
 {
     if (printed.find(text) == printed.end())
     {
@@ -23,8 +23,24 @@ bool NoRepeatPrinter::print(const string &text, ostream &out)
     }
     else
     {
+        auto rstrip = string(text);
+        while (rstrip.back() == '\n' || rstrip.back() == '\r')
+        {
+            rstrip.pop_back();
+        }
+        LOG_F(INFO, "refuse to print %s", rstrip.c_str());
         return false;
     }
+}
+
+bool NoRepeatPrinter::print(const string &text, ostream &out)
+{
+    out << text;
+    if (printed.find(text) == printed.end())
+    {
+        printed.insert(text);
+    }
+    return true;
 }
 
 string location(const Symbol &filename, int lineno)
