@@ -148,100 +148,14 @@ public:                                                        \
 		return true;                                                                                               \
 	}
 
-#define Expression_SHARED_EXTRAS \
-	void dump_with_types(ostream &, int);
-
-#define new__EXTRAS \
-public:             \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define block_EXTRAS \
-public:              \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define typcase_EXTRAS \
-public:                \
+#define Expression_SHARED_EXTRAS          \
+public:                                   \
+	void dump_with_types(ostream &, int); \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
 #define branch_EXTRAS                     \
 public:                                   \
 	void dump_with_types(ostream &, int); \
 	[[nodiscard]] bool semant(SemantContext &ctx);
-
-#define plus_EXTRAS \
-public:             \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define sub_EXTRAS \
-public:            \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define mul_EXTRAS \
-public:            \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define divide_EXTRAS \
-public:               \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define neg_EXTRAS \
-public:            \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define int_const_EXTRAS \
-public:                  \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define bool_const_EXTRAS \
-public:                   \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define string_const_EXTRAS \
-public:                     \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define comp_EXTRAS \
-public:             \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define lt_EXTRAS \
-public:           \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define eq_EXTRAS \
-public:           \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define leq_EXTRAS \
-public:            \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define assign_EXTRAS \
-public:               \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define object_EXTRAS \
-public:               \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define cond_EXTRAS \
-public:             \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define loop_EXTRAS \
-public:             \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define dispatch_EXTRAS \
-public:                 \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define static_dispatch_EXTRAS \
-public:                        \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
-
-#define isvoid_EXTRAS \
-public:               \
-	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
 #endif
