@@ -153,9 +153,13 @@ public:                                   \
 	void dump_with_types(ostream &, int); \
 	[[nodiscard]] bool semant(SemantContext &ctx) override;
 
-#define branch_EXTRAS                     \
-public:                                   \
-	void dump_with_types(ostream &, int); \
-	[[nodiscard]] bool semant(SemantContext &ctx);
+#define branch_EXTRAS                              \
+private:                                           \
+	Symbol type;                                   \
+                                                   \
+public:                                            \
+	void dump_with_types(ostream &, int);          \
+	[[nodiscard]] bool semant(SemantContext &ctx); \
+	[[nodiscard]] Symbol get_expr_type();
 
 #endif

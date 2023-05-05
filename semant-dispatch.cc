@@ -58,7 +58,7 @@ bool check_actual_args(
 const auto *method_definition(SemantContext &ctx, const Symbol &type, const Symbol &method)
 {
     const auto &T = translate_SELF_TYPE(ctx.typeEnv, type);
-    LOG_F(INFO, "at method definition of %s::%s", T->get_string(), method->get_string());
+    LOG_SCOPE_F(INFO, "at method definition of %s::%s", T->get_string(), method->get_string());
     auto familyMethods = ctx.programFeatureTable.at(T).methods;
     LOG_F(INFO, "search in %p", &familyMethods);
     const auto impl = familyMethods.lookup(method);

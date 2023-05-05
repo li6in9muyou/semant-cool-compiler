@@ -14,8 +14,11 @@ bool cond_class::semant(SemantContext &ctx)
     auto ok = true;
 
     ok &= pred->semant(ctx);
-    ok &= then_exp->semant(ctx);
-    ok &= else_exp->semant(ctx);
+    {
+        LOG_SCOPE_F(INFO, "semant cond branches");
+        ok &= then_exp->semant(ctx);
+        ok &= else_exp->semant(ctx);
+    }
 
     ok &= check_symbol_eq(Bool, pred->get_type(), not_bool);
     set_type(least_upper_bound(ctx, then_exp->get_type(), else_exp->get_type()));
