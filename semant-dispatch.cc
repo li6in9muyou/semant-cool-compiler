@@ -148,10 +148,19 @@ bool dispatch_class::semant(SemantContext &ctx)
     auto ok = true;
     ok &= expr->semant(ctx);
     const auto exprT = expr->get_type();
-    ok &= check_dispatch_method_to_type(ctx, exprT, name, actual, bad_type(exprT), bad_method, bad_arg_len, bad_args);
+    const auto receiverT = translate_SELF_TYPE(ctx.typeEnv, exprT);
+    ok &= check_dispatch_method_to_type(ctx, receiverT, name, actual, bad_type(exprT), bad_method, bad_arg_len, bad_args);
     if (ok)
     {
-        set_type(method_definition(ctx, exprT, name)->back().second);
+        const auto defT = method_definition(ctx, receiverT, name)->back().second;
+        if (check_symbol_eq(defT, SELF_TYPE))
+        {
+            set_type(exprT);
+        }
+        else
+        {
+            set_type(defT);
+        }
     }
     else
     {
@@ -206,10 +215,19 @@ bool static_dispatch_class::semant(SemantContext &ctx)
         ok &= expr->semant(ctx);
         const auto exprT = expr->get_type();
         ok &= check_type_conform_to(ctx, exprT, type_name, bad_cast(exprT));
-        ok &= ok && check_dispatch_method_to_type(ctx, type_name, name, actual, bad_type, bad_method, bad_arg_len, bad_args);
+        const auto receiverT = type_name;
+        ok &= ok && check_dispatch_method_to_type(ctx, receiverT, name, actual, bad_type, bad_method, bad_arg_len, bad_args);
         if (ok)
         {
-            set_type(method_definition(ctx, exprT, name)->back().second);
+            const auto defT = method_definition(ctx, receiverT, name)->back().second;
+            if (check_symbol_eq(defT, SELF_TYPE))
+            {
+                set_type(exprT);
+            }
+            else
+            {
+                set_type(defT);
+            }
         }
         else
         {
