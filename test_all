@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-./test_n $EXAMPLE_DIR
-./test_n $EXAMPLE_DIR/semant
