@@ -117,9 +117,9 @@ string dump_symbols(const vector<Symbol> &symbols)
 
 const Symbol &translate_SELF_TYPE(SymbolTable<Symbol, Symbol> *env, const Symbol &t)
 {
+    LOG_SCOPE_F(INFO, "at translate SELF_TYPE");
     if (check_symbol_eq(t, SELF_TYPE, noop))
     {
-        LOG_SCOPE_F(INFO, "at translate SELF_TYPE");
         const auto p = env->lookup(SELF_TYPE);
         CHECK_NOTNULL_F(p, "SELF_TYPE is not in env %p", env);
         LOG_F(INFO, "SELF_TYPE -> %s with %p", (*p)->get_string(), env);
