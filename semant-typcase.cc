@@ -11,6 +11,8 @@ bool typcase_class::semant(SemantContext &ctx)
     LOG_F(INFO, "semant at type case at line %d", get_line_number());
     auto ok = true;
 
+    ok &= expr->semant(ctx);
+
     ctx.typeEnv->enterscope();
     {
         LOG_SCOPE_F(INFO, "descending into cases");
