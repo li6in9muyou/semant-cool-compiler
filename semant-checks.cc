@@ -68,11 +68,19 @@ bool check_type_conform_to(SemantContext &ctx, const Symbol &t, const Symbol &su
     const auto tType = translate_SELF_TYPE(ctx.typeEnv, t);
     const auto superType = translate_SELF_TYPE(ctx.typeEnv, super);
 
-    LOG_F(INFO, "at check type conform %s <= %s",
-          dump_symbols(ctx.familyHierarchyHash[tType]).c_str(),
-          dump_symbols(ctx.familyHierarchyHash[superType]).c_str());
+    LOG_SCOPE_F(INFO, "at check type conform %s <= %s", t->get_string(), super->get_string());
+    auto ok = true;
+    if (check_symbol_eq(super, SELF_TYPE))
+    {
+        ok &= check_symbol_eq(t, SELF_TYPE);
+        LOG_IF_F(INFO, ok, "SELF_TYPE <= SELF_TYPE, return true");
+        LOG_IF_F(INFO, !ok, "no class name conforms to SELF_TYPE, return false");
+    }
 
-    auto ok = check_symbol_eq(tType, superType) || check_symbol_eq(least_upper_bound(ctx, tType, superType), super);
+    LOG_F(INFO, "real t is %s", dump_symbols(ctx.familyHierarchyHash[tType]).c_str());
+    LOG_F(INFO, "real super is %s", dump_symbols(ctx.familyHierarchyHash[superType]).c_str());
+    ok &= ok && (check_symbol_eq(tType, superType) || check_symbol_eq(least_upper_bound(ctx, tType, superType), super));
+
     if (!ok)
     {
         on_error();
