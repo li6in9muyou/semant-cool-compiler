@@ -11,6 +11,9 @@ using std::mismatch;
 #include "semant-utility.h"
 #include "cool-tree.h"
 
+void noop();
+bool check_symbol_eq(const Symbol &thiz, const Symbol &that, function<void()> on_error);
+
 NoRepeatPrinter err = NoRepeatPrinter();
 
 bool NoRepeatPrinter::print_once(const string &text, ostream &out)
@@ -75,10 +78,13 @@ bool set_type_if_ok(bool ok, Expression e, const Symbol &ok_type, const Symbol &
 Symbol least_upper_bound(SemantContext &ctx, const Symbol &thiz, const Symbol &that)
 {
     LOG_SCOPE_FUNCTION(INFO);
-    CHECK_NOTNULL_F(thiz, "at least upper bound");
-    CHECK_NOTNULL_F(that, "at least upper bound");
-    const auto &thizFamily = ctx.familyHierarchyHash[translate_SELF_TYPE(ctx.typeEnv, thiz)];
-    const auto &thatFamily = ctx.familyHierarchyHash[translate_SELF_TYPE(ctx.typeEnv, that)];
+    if (check_symbol_eq(thiz, that, noop))
+    {
+        LOG_F(INFO, "lub over same symbol %s", thiz->get_string());
+        return thiz;
+    }
+    const auto thizFamily = ctx.familyHierarchyHash[translate_SELF_TYPE(ctx.typeEnv, thiz)];
+    const auto thatFamily = ctx.familyHierarchyHash[translate_SELF_TYPE(ctx.typeEnv, that)];
     LOG_IF_F(ERROR, thizFamily.empty(), "%s has empty family hierarchy hash", thiz->get_string());
     LOG_IF_F(ERROR, thatFamily.empty(), "%s has empty family hierarchy hash", that->get_string());
     LOG_F(INFO, "lub over %s and %s", dump_symbols(thizFamily).c_str(), dump_symbols(thatFamily).c_str());
@@ -109,14 +115,11 @@ string dump_symbols(const vector<Symbol> &symbols)
     return text;
 }
 
-void noop();
-bool check_symbol_eq(const Symbol &thiz, const Symbol &that, function<void()> on_error);
-
 const Symbol &translate_SELF_TYPE(SymbolTable<Symbol, Symbol> *env, const Symbol &t)
 {
-    LOG_SCOPE_FUNCTION(INFO);
     if (check_symbol_eq(t, SELF_TYPE, noop))
     {
+        LOG_SCOPE_F(INFO, "at translate SELF_TYPE");
         const auto p = env->lookup(SELF_TYPE);
         CHECK_NOTNULL_F(p, "SELF_TYPE is not in env %p", env);
         LOG_F(INFO, "SELF_TYPE -> %s with %p", (*p)->get_string(), env);
