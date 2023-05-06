@@ -4,4 +4,4 @@ if ! make -j8 semant; then
     exit 1
 fi
 
-./test_one -q /class/examples/semant/my-*
+./test_one -q /class/examples/semant/my-* /class/examples/*.cl
