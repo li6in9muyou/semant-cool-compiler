@@ -38,7 +38,9 @@ bool let_class::semant(SemantContext &ctx)
         LOG_F(INFO, "init has type %s", initType->get_string());
         const auto noInitExpr = check_symbol_eq(initType, No_type);
         LOG_IF_F(INFO, noInitExpr, "no init expression");
-        ok &= noInitExpr || check_type_conform_to(ctx, init->get_type(), type_decl, bad_type(*init->get_type()));
+        ok &= noInitExpr ||
+              (check_symbol_exists(type_decl, ctx.classTable) &&
+               check_type_conform_to(ctx, init->get_type(), type_decl, bad_type(*init->get_type())));
 
         ok &= body->semant(ctx);
         LOG_F(INFO, "body has type %s", body->get_type()->get_string());
