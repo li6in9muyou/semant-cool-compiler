@@ -52,10 +52,9 @@ bool method_class::semant(SemantContext &ctx)
     }
 
     const auto returnTypeOk = check_symbol_exists(return_type, ctx.classTable, bad_return_type);
-    LOG_IF_F(INFO, !returnTypeOk, "declared return type %s does no exist", return_type->get_string());
-    LOG_IF_F(INFO, returnTypeOk, "check body type conform to declared type");
+    LOG_IF_F(INFO, !returnTypeOk, "declared return type %s does not exist", return_type->get_string());
 
-    LOG_F(INFO, "check body type %s", expr->get_type()->get_string());
+    LOG_IF_F(INFO, returnTypeOk, "check body type %s conform to declared type", expr->get_type()->get_string());
     ok = returnTypeOk &&
          check_type_conform_to(ctx, expr->get_type(), return_type, type_mismatch) &&
          ok;
