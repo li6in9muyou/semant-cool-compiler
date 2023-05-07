@@ -95,6 +95,10 @@ void initialize_constants(void)
  */
 void program_class::semant()
 {
+    if (!semant_debug)
+    {
+        loguru::g_stderr_verbosity = loguru::Verbosity_OFF;
+    }
     loguru::g_preamble_date = false;
     loguru::g_preamble_time = false;
     loguru::g_preamble_thread = false;

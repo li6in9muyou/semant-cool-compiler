@@ -5,7 +5,7 @@ red() {
 }
 
 if make -j8 semant; then
-    mylexer "$1" | myparser | ./semant 2>&1
+    mylexer "$1" | myparser | ./semant -s 2>&1
 else
     red "BUILD FAILED"
 fi
